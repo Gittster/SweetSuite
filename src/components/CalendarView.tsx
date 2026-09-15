@@ -1,0 +1,239 @@
+import { useMemo, useState } from 'react'
+import {
+  addDays,
+  addMonths,
+  addWeeks,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  isSameDay,
+  isSameMonth,
+  isToday,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+  subMonths,
+  subWeeks,
+} from 'date-fns'
+import { events, people } from '../data/mockData'
+import type { CalendarEvent } from '../types'
+import './CalendarView.css'
+
+type ViewMode = 'day' | 'week' | 'month' | 'schedule'
+
+const personById = new Map(people.map((p) => [p.id, p]))
+
+function eventsOnDay(day: Date): CalendarEvent[] {
+  return events
+    .filter((e) => isSameDay(new Date(e.start), day))
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+}
+
+function EventChip({ event }: { event: CalendarEvent }) {
+  const person = event.personId ? personById.get(event.personId) : undefined
+  return (
+    <div className="event-chip" style={{ borderLeftColor: person?.color ?? '#999' }}>
+      <div className="event-chip-time">{format(new Date(event.start), 'h:mm a')}</div>
+      <div className="event-chip-body">
+        <div className="event-chip-title">{event.title}</div>
+        {event.location && <div className="event-chip-location">{event.location}</div>}
+      </div>
+      {person && (
+        <span className="event-chip-person" style={{ background: person.color }}>
+          {person.name}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function DayDetail({ day }: { day: Date }) {
+  const dayEvents = eventsOnDay(day)
+  return (
+    <div className="day-detail">
+      <h3>{format(day, 'EEEE, MMMM d')}</h3>
+      {dayEvents.length === 0 ? (
+        <p className="empty-state">No events</p>
+      ) : (
+        <div className="event-list">
+          {dayEvents.map((e) => (
+            <EventChip key={e.id} event={e} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MonthGrid({
+  selectedDate,
+  onSelect,
+}: {
+  selectedDate: Date
+  onSelect: (d: Date) => void
+}) {
+  const days = useMemo(() => {
+    const start = startOfWeek(startOfMonth(selectedDate))
+    const end = endOfWeek(endOfMonth(selectedDate))
+    return eachDayOfInterval({ start, end })
+  }, [selectedDate])
+
+  return (
+    <div className="month-grid">
+      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+        <div key={d} className="month-grid-weekday">
+          {d}
+        </div>
+      ))}
+      {days.map((day) => {
+        const dayEvents = eventsOnDay(day)
+        const inMonth = isSameMonth(day, selectedDate)
+        const selected = isSameDay(day, selectedDate)
+        return (
+          <button
+            key={day.toISOString()}
+            type="button"
+            className={`month-grid-cell ${inMonth ? '' : 'outside'} ${selected ? 'selected' : ''} ${isToday(day) ? 'today' : ''}`}
+            onClick={() => onSelect(day)}
+          >
+            <span className="month-grid-daynum">{format(day, 'd')}</span>
+            <span className="month-grid-dots">
+              {dayEvents.slice(0, 4).map((e) => {
+                const person = e.personId ? personById.get(e.personId) : undefined
+                return (
+                  <span
+                    key={e.id}
+                    className="month-grid-dot"
+                    style={{ background: person?.color ?? '#999' }}
+                  />
+                )
+              })}
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function WeekView({ selectedDate }: { selectedDate: Date }) {
+  const days = useMemo(() => {
+    const start = startOfWeek(selectedDate)
+    return eachDayOfInterval({ start, end: endOfWeek(selectedDate) })
+  }, [selectedDate])
+
+  return (
+    <div className="week-view">
+      {days.map((day) => (
+        <div key={day.toISOString()} className={`week-view-day ${isToday(day) ? 'today' : ''}`}>
+          <div className="week-view-day-header">{format(day, 'EEE d')}</div>
+          <div className="event-list">
+            {eventsOnDay(day).map((e) => (
+              <EventChip key={e.id} event={e} />
+            ))}
+            {eventsOnDay(day).length === 0 && <p className="empty-state small">—</p>}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ScheduleView() {
+  const upcoming = useMemo(() => {
+    const today = startOfDay(new Date())
+    const byDay = new Map<string, CalendarEvent[]>()
+    for (const e of events) {
+      const day = startOfDay(new Date(e.start))
+      if (day < today) continue
+      const key = day.toISOString()
+      if (!byDay.has(key)) byDay.set(key, [])
+      byDay.get(key)!.push(e)
+    }
+    return [...byDay.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, evts]) => ({
+        day: new Date(key),
+        events: evts.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
+      }))
+  }, [])
+
+  return (
+    <div className="schedule-view">
+      {upcoming.length === 0 && <p className="empty-state">No upcoming events</p>}
+      {upcoming.map(({ day, events: dayEvents }) => (
+        <div key={day.toISOString()} className="schedule-day">
+          <h3>{format(day, 'EEEE, MMMM d')}</h3>
+          <div className="event-list">
+            {dayEvents.map((e) => (
+              <EventChip key={e.id} event={e} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export default function CalendarView() {
+  const [view, setView] = useState<ViewMode>('month')
+  const [selectedDate, setSelectedDate] = useState(() => new Date())
+
+  const goToday = () => setSelectedDate(new Date())
+  const goPrev = () => {
+    if (view === 'week') setSelectedDate((d) => subWeeks(d, 1))
+    else if (view === 'day') setSelectedDate((d) => addDays(d, -1))
+    else setSelectedDate((d) => subMonths(d, 1))
+  }
+  const goNext = () => {
+    if (view === 'week') setSelectedDate((d) => addWeeks(d, 1))
+    else if (view === 'day') setSelectedDate((d) => addDays(d, 1))
+    else setSelectedDate((d) => addMonths(d, 1))
+  }
+
+  return (
+    <div className="calendar-view">
+      <header className="calendar-header">
+        <div className="calendar-nav">
+          <button type="button" onClick={goPrev} aria-label="Previous">‹</button>
+          <button type="button" className="calendar-today-btn" onClick={goToday}>Today</button>
+          <button type="button" onClick={goNext} aria-label="Next">›</button>
+          <h2>{format(selectedDate, view === 'month' ? 'MMMM yyyy' : 'MMM d, yyyy')}</h2>
+        </div>
+        <div className="calendar-view-toggle">
+          {(['day', 'week', 'month', 'schedule'] as ViewMode[]).map((v) => (
+            <button
+              key={v}
+              type="button"
+              className={view === v ? 'active' : ''}
+              onClick={() => setView(v)}
+            >
+              {v[0].toUpperCase() + v.slice(1)}
+            </button>
+          ))}
+        </div>
+        <div className="calendar-legend">
+          {people.map((p) => (
+            <span key={p.id} className="legend-item">
+              <span className="legend-dot" style={{ background: p.color }} />
+              {p.name}
+            </span>
+          ))}
+        </div>
+      </header>
+
+      <div className="calendar-body">
+        {view === 'month' && (
+          <>
+            <MonthGrid selectedDate={selectedDate} onSelect={setSelectedDate} />
+            <DayDetail day={selectedDate} />
+          </>
+        )}
+        {view === 'week' && <WeekView selectedDate={selectedDate} />}
+        {view === 'day' && <DayDetail day={selectedDate} />}
+        {view === 'schedule' && <ScheduleView />}
+      </div>
+    </div>
+  )
+}

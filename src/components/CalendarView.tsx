@@ -18,9 +18,12 @@ import {
 } from 'date-fns'
 import { events, people } from '../data/mockData'
 import type { CalendarEvent } from '../types'
+import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
 import './CalendarView.css'
 
 type ViewMode = 'day' | 'week' | 'month' | 'schedule'
+
+const MAX_TILES_PER_DAY = 3
 
 const personById = new Map(people.map((p) => [p.id, p]))
 
@@ -90,6 +93,8 @@ function MonthGrid({
         const dayEvents = eventsOnDay(day)
         const inMonth = isSameMonth(day, selectedDate)
         const selected = isSameDay(day, selectedDate)
+        const visible = dayEvents.slice(0, MAX_TILES_PER_DAY)
+        const overflow = dayEvents.length - visible.length
         return (
           <button
             key={day.toISOString()}
@@ -98,17 +103,20 @@ function MonthGrid({
             onClick={() => onSelect(day)}
           >
             <span className="month-grid-daynum">{format(day, 'd')}</span>
-            <span className="month-grid-dots">
-              {dayEvents.slice(0, 4).map((e) => {
+            <span className="month-grid-tiles">
+              {visible.map((e) => {
                 const person = e.personId ? personById.get(e.personId) : undefined
                 return (
                   <span
                     key={e.id}
-                    className="month-grid-dot"
+                    className="month-grid-tile"
                     style={{ background: person?.color ?? '#999' }}
-                  />
+                  >
+                    {e.title}
+                  </span>
                 )
               })}
+              {overflow > 0 && <span className="month-grid-more">+{overflow} more</span>}
             </span>
           </button>
         )
@@ -196,9 +204,13 @@ export default function CalendarView() {
     <div className="calendar-view">
       <header className="calendar-header">
         <div className="calendar-nav">
-          <button type="button" onClick={goPrev} aria-label="Previous">‹</button>
+          <button type="button" className="calendar-nav-btn" onClick={goPrev} aria-label="Previous">
+            <ChevronLeftIcon className="calendar-nav-icon" />
+          </button>
           <button type="button" className="calendar-today-btn" onClick={goToday}>Today</button>
-          <button type="button" onClick={goNext} aria-label="Next">›</button>
+          <button type="button" className="calendar-nav-btn" onClick={goNext} aria-label="Next">
+            <ChevronRightIcon className="calendar-nav-icon" />
+          </button>
           <h2>{format(selectedDate, view === 'month' ? 'MMMM yyyy' : 'MMM d, yyyy')}</h2>
         </div>
         <div className="calendar-view-toggle">

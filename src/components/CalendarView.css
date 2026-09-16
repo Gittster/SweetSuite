@@ -19,13 +19,14 @@
 }
 
 .calendar-nav button {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: var(--bg);
+  border: none;
+  border-radius: 10px;
   min-width: 44px;
   min-height: 44px;
   cursor: pointer;
   font-size: 20px;
+  color: var(--text);
 }
 
 .calendar-today-btn {
@@ -49,9 +50,10 @@
 .calendar-view-toggle button {
   flex: 1;
   padding: 10px 4px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
+  border-radius: 10px;
+  border: none;
   background: var(--bg);
+  color: var(--text-muted);
   cursor: pointer;
   font-weight: 600;
   font-size: 14px;
@@ -60,7 +62,6 @@
 .calendar-view-toggle button.active {
   background: var(--accent);
   color: white;
-  border-color: var(--accent);
 }
 
 .calendar-legend {
@@ -108,9 +109,10 @@
 
 .month-grid-cell {
   aspect-ratio: 1;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: 2px solid transparent;
+  border-radius: 12px;
   background: var(--surface);
+  box-shadow: var(--shadow);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -123,6 +125,7 @@
 
 .month-grid-cell.outside {
   opacity: 0.35;
+  box-shadow: none;
 }
 
 .month-grid-cell.today .month-grid-daynum {
@@ -132,7 +135,6 @@
 
 .month-grid-cell.selected {
   border-color: var(--accent);
-  border-width: 2px;
 }
 
 .month-grid-daynum {
@@ -164,10 +166,10 @@
   align-items: center;
   gap: 10px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 5px solid #999;
-  border-radius: 8px;
-  padding: 10px 12px;
+  box-shadow: var(--shadow);
+  border-left: 4px solid #999;
+  border-radius: 12px;
+  padding: 12px 14px;
 }
 
 .event-chip-time {

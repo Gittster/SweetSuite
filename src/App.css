@@ -5,9 +5,28 @@
 }
 
 .app-content {
+  order: 1;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+}
+
+.app-shell > .tab-bar {
+  order: 2;
+}
+
+@media (orientation: landscape) {
+  .app-shell {
+    flex-direction: row;
+  }
+
+  .app-content {
+    order: 2;
+  }
+
+  .app-shell > .tab-bar {
+    order: 1;
+  }
 }
 
 .photos-placeholder {

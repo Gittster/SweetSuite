@@ -11,7 +11,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   padding: 12px 4px;
   min-height: 76px;
   background: none;
@@ -25,11 +25,34 @@
 }
 
 .tab-bar-icon {
-  font-size: 26px;
-  line-height: 1;
+  width: 26px;
+  height: 26px;
 }
 
 .tab-bar-label {
   font-size: 13px;
   font-weight: 600;
+}
+
+/* Landscape: rail on the left instead of a bar along the bottom */
+@media (orientation: landscape) {
+  .tab-bar {
+    flex-direction: column;
+    border-top: none;
+    border-right: 1px solid var(--border);
+    width: 96px;
+    height: 100%;
+    padding-top: 8px;
+    gap: 4px;
+  }
+
+  .tab-bar-item {
+    min-height: 84px;
+    border-radius: 14px;
+    margin: 0 8px;
+  }
+
+  .tab-bar-item.active {
+    background: var(--accent-soft);
+  }
 }

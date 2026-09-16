@@ -2,10 +2,10 @@ import { addDays, setHours, setMinutes, startOfDay } from 'date-fns'
 import type { CalendarEvent, Person, Task } from '../types'
 
 export const people: Person[] = [
-  { id: 'mom', name: 'Mom', color: '#e0568c' },
-  { id: 'dad', name: 'Dad', color: '#3a86ff' },
-  { id: 'kiddo', name: 'Kiddo', color: '#ffb703' },
-  { id: 'family', name: 'Family', color: '#6a994e' },
+  { id: 'mom', name: 'Mom', color: '#c34a72' },
+  { id: 'dad', name: 'Dad', color: '#3a6d8c' },
+  { id: 'kiddo', name: 'Kiddo', color: '#d99a2b' },
+  { id: 'family', name: 'Family', color: '#4c7a5e' },
 ]
 
 function at(dayOffset: number, hour: number, minute = 0): string {

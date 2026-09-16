@@ -1,17 +1,19 @@
+import type { ComponentType } from 'react'
 import type { TabId } from '../types'
+import { CalendarIcon, ChecklistIcon, ImageIcon, UtensilsIcon } from './Icons'
 import './TabBar.css'
 
 interface Tab {
   id: TabId
   label: string
-  icon: string
+  Icon: ComponentType<{ className?: string }>
 }
 
 const TABS: Tab[] = [
-  { id: 'calendar', label: 'Calendar', icon: '📅' },
-  { id: 'chores', label: 'Chores', icon: '✅' },
-  { id: 'meals', label: 'Meals', icon: '🍽️' },
-  { id: 'photos', label: 'Photos', icon: '🖼️' },
+  { id: 'calendar', label: 'Calendar', Icon: CalendarIcon },
+  { id: 'chores', label: 'Chores', Icon: ChecklistIcon },
+  { id: 'meals', label: 'Meals', Icon: UtensilsIcon },
+  { id: 'photos', label: 'Photos', Icon: ImageIcon },
 ]
 
 interface TabBarProps {
@@ -22,15 +24,15 @@ interface TabBarProps {
 export default function TabBar({ active, onChange }: TabBarProps) {
   return (
     <nav className="tab-bar">
-      {TABS.map((tab) => (
+      {TABS.map(({ id, label, Icon }) => (
         <button
-          key={tab.id}
+          key={id}
           type="button"
-          className={`tab-bar-item ${active === tab.id ? 'active' : ''}`}
-          onClick={() => onChange(tab.id)}
+          className={`tab-bar-item ${active === id ? 'active' : ''}`}
+          onClick={() => onChange(id)}
         >
-          <span className="tab-bar-icon" aria-hidden="true">{tab.icon}</span>
-          <span className="tab-bar-label">{tab.label}</span>
+          <Icon className="tab-bar-icon" />
+          <span className="tab-bar-label">{label}</span>
         </button>
       ))}
     </nav>

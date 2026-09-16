@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { people, tasks as initialTasks } from '../data/mockData'
+import { CheckIcon } from './Icons'
 import type { Recurrence, Task } from '../types'
 import './ChoresView.css'
 
@@ -58,6 +59,7 @@ export default function ChoresView() {
           <button
             type="button"
             className={filter === 'all' ? 'active' : ''}
+            style={filter === 'all' ? { background: 'var(--accent)' } : undefined}
             onClick={() => setFilter('all')}
           >
             All
@@ -87,7 +89,11 @@ export default function ChoresView() {
               onClick={() => toggleDone(task.id)}
             >
               <span className="chore-checkbox" style={{ borderColor: person?.color ?? '#999' }}>
-                {task.done && <span className="chore-checkmark" style={{ background: person?.color }}>✓</span>}
+                {task.done && (
+                  <span className="chore-checkmark" style={{ background: person?.color }}>
+                    <CheckIcon className="chore-checkmark-icon" />
+                  </span>
+                )}
               </span>
               <span className="chore-body">
                 <span className="chore-title">{task.title}</span>

@@ -1,0 +1,9 @@
+{
+  "name": "sweetsuite-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SweetSuite's own backend: Setup PIN auth, Google Calendar OAuth, calendar events API",
+  "dependencies": {
+    "@netlify/blobs": "^11.1.0"
+  }
+}

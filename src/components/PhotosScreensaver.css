@@ -7,6 +7,9 @@
   justify-content: flex-end;
   padding: 40px;
   cursor: pointer;
+  background-color: #111;
+  background-size: cover;
+  background-position: center;
   transition: background 1.2s ease;
   z-index: 100;
 }

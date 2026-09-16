@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { checkFolderPermission, listPhotoFiles } from '../photos/localPhotos'
 import './PhotosScreensaver.css'
 
 const ROTATE_MS = 6000
 
-// Placeholder "photos" (gradients) standing in for the local photo folder from
-// the design doc — swap for real <img> sources reading a synced photos directory.
-const SLIDES = [
+// Fallback "photos" (gradients) shown when no local folder is configured yet
+// or its permission has lapsed — see Setup tab to pick a real folder.
+const PLACEHOLDER_SLIDES = [
   { gradient: 'linear-gradient(135deg, #ff9a9e, #fecfef)', caption: 'Beach day, July' },
   { gradient: 'linear-gradient(135deg, #a1c4fd, #c2e9fb)', caption: 'Winter hike' },
   { gradient: 'linear-gradient(135deg, #ffecd2, #fcb69f)', caption: 'Birthday party' },
@@ -19,25 +20,65 @@ interface PhotosScreensaverProps {
 
 export default function PhotosScreensaver({ onWake }: PhotosScreensaverProps) {
   const [index, setIndex] = useState(0)
+  const [photoFiles, setPhotoFiles] = useState<FileSystemFileHandle[] | null>(null)
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const currentUrlRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    checkFolderPermission().then((state) => {
+      if (state === 'granted') {
+        listPhotoFiles().then(setPhotoFiles)
+      } else {
+        setPhotoFiles([])
+      }
+    })
+  }, [])
 
   useEffect(() => {
     const id = setInterval(() => {
-      setIndex((i) => (i + 1) % SLIDES.length)
+      setIndex((i) => i + 1)
     }, ROTATE_MS)
     return () => clearInterval(id)
   }, [])
 
-  const slide = SLIDES[index]
+  useEffect(() => {
+    if (!photoFiles || photoFiles.length === 0) return
+    const handle = photoFiles[index % photoFiles.length]
+
+    let cancelled = false
+    handle.getFile().then((file) => {
+      if (cancelled) return
+      const url = URL.createObjectURL(file)
+      if (currentUrlRef.current) URL.revokeObjectURL(currentUrlRef.current)
+      currentUrlRef.current = url
+      setPhotoUrl(url)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [photoFiles, index])
+
+  useEffect(() => {
+    return () => {
+      if (currentUrlRef.current) URL.revokeObjectURL(currentUrlRef.current)
+    }
+  }, [])
+
+  const usingRealPhotos = !!photoFiles && photoFiles.length > 0
+  const slide = usingRealPhotos ? null : PLACEHOLDER_SLIDES[index % PLACEHOLDER_SLIDES.length]
 
   return (
     <div
       className="screensaver"
-      style={{ background: slide.gradient }}
+      style={usingRealPhotos
+        ? { backgroundImage: photoUrl ? `url(${photoUrl})` : undefined }
+        : { background: slide!.gradient }}
       onClick={onWake}
       role="button"
       tabIndex={0}
     >
-      <p className="screensaver-caption">{slide.caption}</p>
+      {!usingRealPhotos && <p className="screensaver-caption">{slide!.caption}</p>}
       <p className="screensaver-hint">Tap to wake</p>
     </div>
   )

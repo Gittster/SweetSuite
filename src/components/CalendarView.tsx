@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   addDays,
   addMonths,
@@ -16,7 +16,8 @@ import {
   subMonths,
   subWeeks,
 } from 'date-fns'
-import { events, people } from '../data/mockData'
+import { getCalendarEvents, isBackendConfigured } from '../api/backend'
+import { events as mockEvents, people } from '../data/mockData'
 import type { CalendarEvent } from '../types'
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
 import './CalendarView.css'
@@ -24,10 +25,12 @@ import './CalendarView.css'
 type ViewMode = 'day' | 'week' | 'month' | 'schedule'
 
 const MAX_TILES_PER_DAY = 3
+const FETCH_RANGE_DAYS_BACK = 30
+const FETCH_RANGE_DAYS_FORWARD = 60
 
 const personById = new Map(people.map((p) => [p.id, p]))
 
-function eventsOnDay(day: Date): CalendarEvent[] {
+function eventsOnDay(events: CalendarEvent[], day: Date): CalendarEvent[] {
   return events
     .filter((e) => isSameDay(new Date(e.start), day))
     .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
@@ -51,8 +54,8 @@ function EventChip({ event }: { event: CalendarEvent }) {
   )
 }
 
-function DayDetail({ day }: { day: Date }) {
-  const dayEvents = eventsOnDay(day)
+function DayDetail({ events, day }: { events: CalendarEvent[]; day: Date }) {
+  const dayEvents = eventsOnDay(events, day)
   return (
     <div className="day-detail">
       <h3>{format(day, 'EEEE, MMMM d')}</h3>
@@ -70,9 +73,11 @@ function DayDetail({ day }: { day: Date }) {
 }
 
 function MonthGrid({
+  events,
   selectedDate,
   onSelect,
 }: {
+  events: CalendarEvent[]
   selectedDate: Date
   onSelect: (d: Date) => void
 }) {
@@ -90,7 +95,7 @@ function MonthGrid({
         </div>
       ))}
       {days.map((day) => {
-        const dayEvents = eventsOnDay(day)
+        const dayEvents = eventsOnDay(events, day)
         const inMonth = isSameMonth(day, selectedDate)
         const selected = isSameDay(day, selectedDate)
         const visible = dayEvents.slice(0, MAX_TILES_PER_DAY)
@@ -125,7 +130,7 @@ function MonthGrid({
   )
 }
 
-function WeekView({ selectedDate }: { selectedDate: Date }) {
+function WeekView({ events, selectedDate }: { events: CalendarEvent[]; selectedDate: Date }) {
   const days = useMemo(() => {
     const start = startOfWeek(selectedDate)
     return eachDayOfInterval({ start, end: endOfWeek(selectedDate) })
@@ -133,22 +138,25 @@ function WeekView({ selectedDate }: { selectedDate: Date }) {
 
   return (
     <div className="week-view">
-      {days.map((day) => (
-        <div key={day.toISOString()} className={`week-view-day ${isToday(day) ? 'today' : ''}`}>
-          <div className="week-view-day-header">{format(day, 'EEE d')}</div>
-          <div className="event-list">
-            {eventsOnDay(day).map((e) => (
-              <EventChip key={e.id} event={e} />
-            ))}
-            {eventsOnDay(day).length === 0 && <p className="empty-state small">—</p>}
+      {days.map((day) => {
+        const dayEvents = eventsOnDay(events, day)
+        return (
+          <div key={day.toISOString()} className={`week-view-day ${isToday(day) ? 'today' : ''}`}>
+            <div className="week-view-day-header">{format(day, 'EEE d')}</div>
+            <div className="event-list">
+              {dayEvents.map((e) => (
+                <EventChip key={e.id} event={e} />
+              ))}
+              {dayEvents.length === 0 && <p className="empty-state small">—</p>}
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
 
-function ScheduleView() {
+function ScheduleView({ events }: { events: CalendarEvent[] }) {
   const upcoming = useMemo(() => {
     const today = startOfDay(new Date())
     const byDay = new Map<string, CalendarEvent[]>()
@@ -165,7 +173,7 @@ function ScheduleView() {
         day: new Date(key),
         events: evts.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
       }))
-  }, [])
+  }, [events])
 
   return (
     <div className="schedule-view">
@@ -187,6 +195,23 @@ function ScheduleView() {
 export default function CalendarView() {
   const [view, setView] = useState<ViewMode>('month')
   const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const [events, setEvents] = useState<CalendarEvent[]>(mockEvents)
+  const [usingLiveData, setUsingLiveData] = useState(false)
+
+  useEffect(() => {
+    if (!isBackendConfigured()) return
+
+    const start = addDays(new Date(), -FETCH_RANGE_DAYS_BACK).toISOString()
+    const end = addDays(new Date(), FETCH_RANGE_DAYS_FORWARD).toISOString()
+    getCalendarEvents(start, end)
+      .then(({ events: apiEvents }) => {
+        setEvents(apiEvents.map((e) => ({ ...e, location: e.location ?? undefined, personId: undefined })))
+        setUsingLiveData(true)
+      })
+      .catch((err) => {
+        console.error('Failed to fetch Google Calendar events, showing demo data:', err)
+      })
+  }, [])
 
   const goToday = () => setSelectedDate(new Date())
   const goPrev = () => {
@@ -225,6 +250,9 @@ export default function CalendarView() {
             </button>
           ))}
         </div>
+        {!usingLiveData && (
+          <p className="calendar-demo-note">Showing demo data — connect Google Calendar in Setup.</p>
+        )}
         <div className="calendar-legend">
           {people.map((p) => (
             <span key={p.id} className="legend-item">
@@ -238,13 +266,13 @@ export default function CalendarView() {
       <div className="calendar-body">
         {view === 'month' && (
           <>
-            <MonthGrid selectedDate={selectedDate} onSelect={setSelectedDate} />
-            <DayDetail day={selectedDate} />
+            <MonthGrid events={events} selectedDate={selectedDate} onSelect={setSelectedDate} />
+            <DayDetail events={events} day={selectedDate} />
           </>
         )}
-        {view === 'week' && <WeekView selectedDate={selectedDate} />}
-        {view === 'day' && <DayDetail day={selectedDate} />}
-        {view === 'schedule' && <ScheduleView />}
+        {view === 'week' && <WeekView events={events} selectedDate={selectedDate} />}
+        {view === 'day' && <DayDetail events={events} day={selectedDate} />}
+        {view === 'schedule' && <ScheduleView events={events} />}
       </div>
     </div>
   )

@@ -1,0 +1,24 @@
+[build]
+  functions = "netlify/functions"
+  command = "npm install"
+
+[functions]
+  node_bundler = "esbuild"
+
+[functions.calendar-events]
+  external_node_modules = ["@netlify/blobs"]
+
+[functions.google-oauth-start]
+  external_node_modules = ["@netlify/blobs"]
+
+[functions.google-oauth-callback]
+  external_node_modules = ["@netlify/blobs"]
+
+[functions.setup-status]
+  external_node_modules = ["@netlify/blobs"]
+
+[functions.setup-login]
+  external_node_modules = ["@netlify/blobs"]
+
+[functions.setup-logout]
+  external_node_modules = ["@netlify/blobs"]

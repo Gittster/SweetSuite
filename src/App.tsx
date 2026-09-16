@@ -4,7 +4,9 @@ import TabBar from './components/TabBar'
 import CalendarView from './components/CalendarView'
 import ChoresView from './components/ChoresView'
 import MealsView from './components/MealsView'
+import PhotosView from './components/PhotosView'
 import PhotosScreensaver from './components/PhotosScreensaver'
+import SetupView from './components/SetupView'
 import { useIdleTimer } from './hooks/useIdleTimer'
 import type { TabId } from './types'
 
@@ -20,11 +22,8 @@ function App() {
         {activeTab === 'calendar' && <CalendarView />}
         {activeTab === 'chores' && <ChoresView />}
         {activeTab === 'meals' && <MealsView />}
-        {activeTab === 'photos' && (
-          <div className="photos-placeholder">
-            <p>Tap anywhere to preview the ambient screensaver, or just wait for it to kick in.</p>
-          </div>
-        )}
+        {activeTab === 'photos' && <PhotosView />}
+        {activeTab === 'setup' && <SetupView />}
       </main>
       <TabBar active={activeTab} onChange={setActiveTab} />
       {isIdle && <PhotosScreensaver onWake={wake} />}

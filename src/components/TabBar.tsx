@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 import type { TabId } from '../types'
-import { CalendarIcon, ChecklistIcon, ImageIcon, UtensilsIcon } from './Icons'
+import { CalendarIcon, ChecklistIcon, GearIcon, ImageIcon, UtensilsIcon } from './Icons'
 import './TabBar.css'
 
 interface Tab {
@@ -14,6 +14,7 @@ const TABS: Tab[] = [
   { id: 'chores', label: 'Chores', Icon: ChecklistIcon },
   { id: 'meals', label: 'Meals', Icon: UtensilsIcon },
   { id: 'photos', label: 'Photos', Icon: ImageIcon },
+  { id: 'setup', label: 'Setup', Icon: GearIcon },
 ]
 
 interface TabBarProps {

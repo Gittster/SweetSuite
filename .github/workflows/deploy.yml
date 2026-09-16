@@ -28,6 +28,8 @@ jobs:
         env:
           GITHUB_PAGES: "true"
           VITE_SWEETSUITE_API_KEY: ${{ secrets.SWEETSUITE_API_KEY }}
+          VITE_BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          VITE_BACKEND_API_KEY: ${{ secrets.BACKEND_API_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

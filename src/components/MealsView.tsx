@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { format, parseISO } from 'date-fns'
-import { getMealPlan, getRecipes, type PlannedMeal, type RecipeSummary } from '../api/erinsList'
+import { createRecipe, deleteRecipe, getMealPlan, getRecipes, type NewShorthandRecipe, type PlannedMeal, type RecipeSummary } from '../api/erinsList'
+import AddRecipeModal from './AddRecipeModal'
 import LoadingOverlay from './LoadingOverlay'
 import RecipeView from './RecipeView'
 import './MealsView.css'
@@ -18,6 +19,8 @@ export default function MealsView() {
   const [recipes, setRecipes] = useState<RecipeSummary[] | null>(null)
   const [recipesError, setRecipesError] = useState<string | null>(null)
   const [recipesLoading, setRecipesLoading] = useState(false)
+  const [recipeActionError, setRecipeActionError] = useState<string | null>(null)
+  const [showAddRecipe, setShowAddRecipe] = useState(false)
   const [search, setSearch] = useState('')
 
   const loadPlanning = () => {
@@ -44,6 +47,27 @@ export default function MealsView() {
     if (subTab === 'recipes' && recipes === null && !recipesLoading) loadRecipes()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subTab])
+
+  const handleAddRecipe = (data: NewShorthandRecipe) => {
+    setRecipeActionError(null)
+    createRecipe(data)
+      .then((res) => {
+        setRecipes((current) => (current ? [...current, res.recipe] : [res.recipe]))
+        setShowAddRecipe(false)
+      })
+      .catch((err: Error) => setRecipeActionError(err.message))
+  }
+
+  const handleDeleteRecipe = (recipe: RecipeSummary) => {
+    if (!recipes) return
+    setRecipeActionError(null)
+    const previous = recipes
+    setRecipes(recipes.filter((r) => r.id !== recipe.id))
+    deleteRecipe(recipe.id).catch((err: Error) => {
+      setRecipes(previous)
+      setRecipeActionError(err.message)
+    })
+  }
 
   const mealsByDate = useMemo(() => {
     if (!meals) return []
@@ -85,13 +109,18 @@ export default function MealsView() {
           </button>
         </div>
         {subTab === 'recipes' && (
-          <input
-            className="meals-recipe-search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search recipes…"
-            aria-label="Search recipes"
-          />
+          <div className="meals-recipe-toolbar">
+            <input
+              className="meals-recipe-search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search recipes…"
+              aria-label="Search recipes"
+            />
+            <button type="button" className="meals-recipe-add-btn" onClick={() => setShowAddRecipe(true)}>
+              + Add
+            </button>
+          </div>
         )}
       </header>
 
@@ -144,22 +173,35 @@ export default function MealsView() {
             )}
             {recipes !== null && !recipesError && (
               <section className="meals-section">
+                {recipeActionError && <p className="meals-recipe-action-error">{recipeActionError}</p>}
                 {filteredRecipes.length === 0 && (
                   <p className="empty-state">{search ? 'No recipes match your search.' : 'No recipes yet.'}</p>
                 )}
                 <div className="meals-recipes-grid">
                   {filteredRecipes.map((recipe) => (
-                    <button
-                      key={recipe.id}
-                      type="button"
-                      className="meals-recipe-tile"
-                      onClick={() => setOpenRecipeId(recipe.id)}
-                    >
-                      <span className="meals-recipe-tile-name">{recipe.name || 'Untitled recipe'}</span>
-                      {recipe.tags.length > 0 && (
-                        <span className="meals-recipe-tile-tags">{recipe.tags.join(', ')}</span>
+                    <div key={recipe.id} className="meals-recipe-tile">
+                      <button
+                        type="button"
+                        className="meals-recipe-tile-open"
+                        onClick={() => setOpenRecipeId(recipe.id)}
+                      >
+                        <span className="meals-recipe-tile-name">{recipe.name || 'Untitled recipe'}</span>
+                        {recipe.tags.length > 0 && (
+                          <span className="meals-recipe-tile-tags">{recipe.tags.join(', ')}</span>
+                        )}
+                        {recipe.source === 'app' && <span className="meals-recipe-tile-badge">Quick recipe</span>}
+                      </button>
+                      {recipe.source === 'app' && (
+                        <button
+                          type="button"
+                          className="meals-recipe-tile-delete"
+                          aria-label={`Remove ${recipe.name}`}
+                          onClick={() => handleDeleteRecipe(recipe)}
+                        >
+                          ×
+                        </button>
                       )}
-                    </button>
+                    </div>
                   ))}
                 </div>
               </section>
@@ -169,6 +211,7 @@ export default function MealsView() {
       </div>
 
       {openRecipeId && <RecipeView recipeId={openRecipeId} onClose={() => setOpenRecipeId(null)} />}
+      {showAddRecipe && <AddRecipeModal onClose={() => setShowAddRecipe(false)} onSubmit={handleAddRecipe} />}
     </div>
   )
 }

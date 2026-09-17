@@ -1,0 +1,86 @@
+.add-recipe-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 150;
+  padding: 16px;
+}
+
+.add-recipe-modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.add-recipe-modal h3 {
+  font-size: 18px;
+}
+
+.add-recipe-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: -8px;
+}
+
+.add-recipe-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.add-recipe-field input,
+.add-recipe-field textarea {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.add-recipe-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.add-recipe-cancel,
+.add-recipe-submit {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.add-recipe-cancel {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.add-recipe-submit {
+  background: var(--accent);
+  color: white;
+}
+
+.add-recipe-submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

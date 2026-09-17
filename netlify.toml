@@ -29,3 +29,9 @@
 
 [functions.shopping-list]
   external_node_modules = ["@netlify/blobs"]
+
+[functions.recipes]
+  external_node_modules = ["@netlify/blobs"]
+
+[functions.recipe]
+  external_node_modules = ["@netlify/blobs"]

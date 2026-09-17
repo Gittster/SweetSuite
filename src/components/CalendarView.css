@@ -146,6 +146,7 @@
   align-items: stretch;
   gap: 3px;
   padding: 6px;
+  min-width: 0;
   min-height: 104px;
   text-align: left;
 }
@@ -242,6 +243,10 @@
   border-radius: 999px;
 }
 
+.event-chip.clickable {
+  cursor: pointer;
+}
+
 .event-chip-delete {
   flex-shrink: 0;
   width: 28px;
@@ -297,4 +302,26 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
+}
+
+/* Below ~900px, 7 fixed-width columns don't fit (portrait phones and
+   portrait tablets alike) — stack one day per row instead of forcing a
+   horizontal scroll. */
+@media (max-width: 900px) {
+  .week-view {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-x: visible;
+  }
+
+  .week-view-day-header {
+    text-align: left;
+  }
+
+  .week-view-day .event-chip {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
 }

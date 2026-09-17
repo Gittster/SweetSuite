@@ -1,6 +1,7 @@
 import { corsHeaders } from '../lib/cors.js';
 import { getSession } from '../lib/session.js';
 import { fetchErinsList } from '../lib/erinsList.js';
+import { loadExtraRecipes } from './recipes.js';
 
 export const handler = async (event) => {
   const headers = corsHeaders();
@@ -19,6 +20,12 @@ export const handler = async (event) => {
   const recipeId = (event.queryStringParameters || {}).id;
   if (!recipeId) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing required "id" query parameter.' }) };
+  }
+
+  const extraRecipes = await loadExtraRecipes();
+  const localRecipe = extraRecipes.find((r) => r.id === recipeId);
+  if (localRecipe) {
+    return { statusCode: 200, headers, body: JSON.stringify({ recipe: { ...localRecipe, imageUrl: null, source: 'app' } }) };
   }
 
   try {

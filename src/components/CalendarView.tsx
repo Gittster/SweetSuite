@@ -17,11 +17,13 @@ import {
   subWeeks,
 } from 'date-fns'
 import { addAppEvent, deleteAppEvent, getAppEvents, getCalendarEvents, type NewAppEvent } from '../api/backend'
+import { getMealPlan } from '../api/erinsList'
 import { events as mockEvents, people } from '../data/mockData'
 import type { CalendarEvent } from '../types'
 import AddEventModal from './AddEventModal'
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
 import LoadingOverlay from './LoadingOverlay'
+import RecipeView from './RecipeView'
 import './CalendarView.css'
 
 type ViewMode = 'day' | 'week' | 'month' | 'schedule'
@@ -29,8 +31,15 @@ type ViewMode = 'day' | 'week' | 'month' | 'schedule'
 const MAX_TILES_PER_DAY = 3
 const FETCH_RANGE_DAYS_BACK = 30
 const FETCH_RANGE_DAYS_FORWARD = 60
+const MEAL_COLOR = '#7b5ea7'
 
 const personById = new Map(people.map((p) => [p.id, p]))
+
+function colorFor(event: CalendarEvent): string {
+  if (event.source === 'meal') return MEAL_COLOR
+  const person = event.personId ? personById.get(event.personId) : undefined
+  return person?.color ?? '#999'
+}
 
 function eventsOnDay(events: CalendarEvent[], day: Date): CalendarEvent[] {
   return events
@@ -38,10 +47,23 @@ function eventsOnDay(events: CalendarEvent[], day: Date): CalendarEvent[] {
     .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
 }
 
-function EventChip({ event, onDelete }: { event: CalendarEvent; onDelete?: (id: string) => void }) {
+function EventChip({
+  event,
+  onDelete,
+  onOpenRecipe,
+}: {
+  event: CalendarEvent
+  onDelete?: (id: string) => void
+  onOpenRecipe?: (recipeId: string) => void
+}) {
   const person = event.personId ? personById.get(event.personId) : undefined
+  const openable = event.source === 'meal' && event.recipeId && onOpenRecipe
   return (
-    <div className="event-chip" style={{ borderLeftColor: person?.color ?? '#999' }}>
+    <div
+      className={`event-chip ${openable ? 'clickable' : ''}`}
+      style={{ borderLeftColor: colorFor(event) }}
+      onClick={openable ? () => onOpenRecipe!(event.recipeId!) : undefined}
+    >
       <div className="event-chip-time">{format(new Date(event.start), 'h:mm a')}</div>
       <div className="event-chip-body">
         <div className="event-chip-title">{event.title}</div>
@@ -52,12 +74,20 @@ function EventChip({ event, onDelete }: { event: CalendarEvent; onDelete?: (id: 
           {person.name}
         </span>
       )}
+      {event.source === 'meal' && (
+        <span className="event-chip-person" style={{ background: MEAL_COLOR }}>
+          Meal
+        </span>
+      )}
       {event.source === 'app' && onDelete && (
         <button
           type="button"
           className="event-chip-delete"
           aria-label="Delete event"
-          onClick={() => onDelete(event.id)}
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete(event.id)
+          }}
         >
           ✕
         </button>
@@ -70,10 +100,12 @@ function DayDetail({
   events,
   day,
   onDelete,
+  onOpenRecipe,
 }: {
   events: CalendarEvent[]
   day: Date
   onDelete: (id: string) => void
+  onOpenRecipe: (recipeId: string) => void
 }) {
   const dayEvents = eventsOnDay(events, day)
   return (
@@ -84,7 +116,7 @@ function DayDetail({
       ) : (
         <div className="event-list">
           {dayEvents.map((e) => (
-            <EventChip key={e.id} event={e} onDelete={onDelete} />
+            <EventChip key={e.id} event={e} onDelete={onDelete} onOpenRecipe={onOpenRecipe} />
           ))}
         </div>
       )}
@@ -129,18 +161,15 @@ function MonthGrid({
           >
             <span className="month-grid-daynum">{format(day, 'd')}</span>
             <span className="month-grid-tiles">
-              {visible.map((e) => {
-                const person = e.personId ? personById.get(e.personId) : undefined
-                return (
-                  <span
-                    key={e.id}
-                    className="month-grid-tile"
-                    style={{ background: person?.color ?? '#999' }}
-                  >
-                    {e.title}
-                  </span>
-                )
-              })}
+              {visible.map((e) => (
+                <span
+                  key={e.id}
+                  className="month-grid-tile"
+                  style={{ background: colorFor(e) }}
+                >
+                  {e.title}
+                </span>
+              ))}
               {overflow > 0 && <span className="month-grid-more">+{overflow} more</span>}
             </span>
           </button>
@@ -154,10 +183,12 @@ function WeekView({
   events,
   selectedDate,
   onDelete,
+  onOpenRecipe,
 }: {
   events: CalendarEvent[]
   selectedDate: Date
   onDelete: (id: string) => void
+  onOpenRecipe: (recipeId: string) => void
 }) {
   const days = useMemo(() => {
     const start = startOfWeek(selectedDate)
@@ -173,7 +204,7 @@ function WeekView({
             <div className="week-view-day-header">{format(day, 'EEE d')}</div>
             <div className="event-list">
               {dayEvents.map((e) => (
-                <EventChip key={e.id} event={e} onDelete={onDelete} />
+                <EventChip key={e.id} event={e} onDelete={onDelete} onOpenRecipe={onOpenRecipe} />
               ))}
               {dayEvents.length === 0 && <p className="empty-state small">—</p>}
             </div>
@@ -184,7 +215,15 @@ function WeekView({
   )
 }
 
-function ScheduleView({ events, onDelete }: { events: CalendarEvent[]; onDelete: (id: string) => void }) {
+function ScheduleView({
+  events,
+  onDelete,
+  onOpenRecipe,
+}: {
+  events: CalendarEvent[]
+  onDelete: (id: string) => void
+  onOpenRecipe: (recipeId: string) => void
+}) {
   const upcoming = useMemo(() => {
     const today = startOfDay(new Date())
     const byDay = new Map<string, CalendarEvent[]>()
@@ -211,7 +250,7 @@ function ScheduleView({ events, onDelete }: { events: CalendarEvent[]; onDelete:
           <h3>{format(day, 'EEEE, MMMM d')}</h3>
           <div className="event-list">
             {dayEvents.map((e) => (
-              <EventChip key={e.id} event={e} onDelete={onDelete} />
+              <EventChip key={e.id} event={e} onDelete={onDelete} onOpenRecipe={onOpenRecipe} />
             ))}
           </div>
         </div>
@@ -225,15 +264,21 @@ export default function CalendarView() {
   const [selectedDate, setSelectedDate] = useState(() => new Date())
   const [syncedEvents, setSyncedEvents] = useState<CalendarEvent[]>([])
   const [appEvents, setAppEvents] = useState<CalendarEvent[]>([])
+  const [mealEvents, setMealEvents] = useState<CalendarEvent[]>([])
   const [usingLiveData, setUsingLiveData] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [openRecipeId, setOpenRecipeId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const start = addDays(new Date(), -FETCH_RANGE_DAYS_BACK).toISOString()
-    const end = addDays(new Date(), FETCH_RANGE_DAYS_FORWARD).toISOString()
+    const start = addDays(new Date(), -FETCH_RANGE_DAYS_BACK)
+    const end = addDays(new Date(), FETCH_RANGE_DAYS_FORWARD)
 
-    Promise.allSettled([getCalendarEvents(start, end), getAppEvents()]).then(([calResult, appResult]) => {
+    Promise.allSettled([
+      getCalendarEvents(start.toISOString(), end.toISOString()),
+      getAppEvents(),
+      getMealPlan(format(start, 'yyyy-MM-dd'), format(end, 'yyyy-MM-dd')),
+    ]).then(([calResult, appResult, mealResult]) => {
       if (calResult.status === 'fulfilled') {
         setSyncedEvents(calResult.value.events.map((e) => ({ ...e, location: e.location ?? undefined, personId: undefined })))
         setUsingLiveData(true)
@@ -248,11 +293,28 @@ export default function CalendarView() {
         console.error('Failed to fetch app-added events:', appResult.reason)
       }
 
+      if (mealResult.status === 'fulfilled') {
+        setMealEvents(
+          mealResult.value.meals
+            .filter((m) => m.date)
+            .map((m) => ({
+              id: `meal-${m.id}`,
+              title: m.recipeName || 'Meal',
+              start: `${m.date}T12:00:00`,
+              end: `${m.date}T12:30:00`,
+              source: 'meal' as const,
+              recipeId: m.recipeId ?? undefined,
+            }))
+        )
+      } else {
+        console.error('Failed to fetch planned meals for the calendar:', mealResult.reason)
+      }
+
       setLoading(false)
     })
   }, [])
 
-  const allEvents = useMemo(() => [...syncedEvents, ...appEvents], [syncedEvents, appEvents])
+  const allEvents = useMemo(() => [...syncedEvents, ...appEvents, ...mealEvents], [syncedEvents, appEvents, mealEvents])
 
   const handleAddEvent = (data: NewAppEvent) => {
     addAppEvent(data)
@@ -316,6 +378,10 @@ export default function CalendarView() {
               {p.name}
             </span>
           ))}
+          <span className="legend-item">
+            <span className="legend-dot" style={{ background: MEAL_COLOR }} />
+            Meals
+          </span>
         </div>
       </header>
 
@@ -326,12 +392,18 @@ export default function CalendarView() {
             {view === 'month' && (
               <>
                 <MonthGrid events={allEvents} selectedDate={selectedDate} onSelect={setSelectedDate} />
-                <DayDetail events={allEvents} day={selectedDate} onDelete={handleDeleteEvent} />
+                <DayDetail events={allEvents} day={selectedDate} onDelete={handleDeleteEvent} onOpenRecipe={setOpenRecipeId} />
               </>
             )}
-            {view === 'week' && <WeekView events={allEvents} selectedDate={selectedDate} onDelete={handleDeleteEvent} />}
-            {view === 'day' && <DayDetail events={allEvents} day={selectedDate} onDelete={handleDeleteEvent} />}
-            {view === 'schedule' && <ScheduleView events={allEvents} onDelete={handleDeleteEvent} />}
+            {view === 'week' && (
+              <WeekView events={allEvents} selectedDate={selectedDate} onDelete={handleDeleteEvent} onOpenRecipe={setOpenRecipeId} />
+            )}
+            {view === 'day' && (
+              <DayDetail events={allEvents} day={selectedDate} onDelete={handleDeleteEvent} onOpenRecipe={setOpenRecipeId} />
+            )}
+            {view === 'schedule' && (
+              <ScheduleView events={allEvents} onDelete={handleDeleteEvent} onOpenRecipe={setOpenRecipeId} />
+            )}
           </>
         )}
       </div>
@@ -343,6 +415,8 @@ export default function CalendarView() {
           onSubmit={handleAddEvent}
         />
       )}
+
+      {openRecipeId && <RecipeView recipeId={openRecipeId} onClose={() => setOpenRecipeId(null)} />}
     </div>
   )
 }

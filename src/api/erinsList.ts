@@ -40,6 +40,13 @@ export interface RecipeSummary {
   imageUrl: string | null
   tags: string[]
   rating: number
+  source: 'erinslist' | 'app'
+}
+
+export interface NewShorthandRecipe {
+  name: string
+  ingredients: string[] // freeform lines, e.g. "2 cups flour"
+  instructions: string
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -89,4 +96,16 @@ export function getRecipe(id: string): Promise<{ recipe: Recipe }> {
 
 export function getRecipes(): Promise<{ recipes: RecipeSummary[] }> {
   return request('/recipes')
+}
+
+export function createRecipe(input: NewShorthandRecipe): Promise<{ recipe: RecipeSummary }> {
+  return request('/recipes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+}
+
+export function deleteRecipe(id: string): Promise<{ deleted: string }> {
+  return request(`/recipes?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
 }

@@ -74,6 +74,16 @@ export function CheckIcon(props: IconProps) {
   )
 }
 
+export function CartIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M2.5 3.5h2.3l1 12.2a2 2 0 0 0 2 1.8h8.4a2 2 0 0 0 2-1.7l1.2-7.3H6.2" />
+      <circle cx="9" cy="20.5" r="1.4" />
+      <circle cx="17" cy="20.5" r="1.4" />
+    </svg>
+  )
+}
+
 export function ImageIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>

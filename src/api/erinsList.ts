@@ -9,25 +9,33 @@ export interface PlannedMeal {
   recipeId: string | null
 }
 
-export interface ShoppingIngredient {
+export interface ShoppingItem {
+  id: string
+  name: string
+  quantity: string | number | null
+  unit: string | null
+  checked: boolean
+  source: 'erinslist' | 'app'
+}
+
+export interface RecipeIngredient {
   name: string
   quantity?: string | number
   unit?: string
-  checked?: boolean
 }
 
 export interface Recipe {
   id: string
   name: string | null
   imageUrl: string | null
-  ingredients: ShoppingIngredient[]
+  ingredients: RecipeIngredient[]
   instructions: string
   tags: string[]
   rating: number
 }
 
-async function request<T>(path: string): Promise<T> {
-  const res = await fetch(`/.netlify/functions${path}`, { credentials: 'include' })
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`/.netlify/functions${path}`, { credentials: 'include', ...init })
   if (!res.ok) {
     const body = await res.json().catch(() => null)
     throw new Error(body?.error || `Request failed (${res.status})`)
@@ -43,8 +51,28 @@ export function getMealPlan(start?: string, end?: string): Promise<{ meals: Plan
   return request(`/meal-plan${query ? `?${query}` : ''}`)
 }
 
-export function getShoppingList(): Promise<{ ingredients: ShoppingIngredient[] }> {
+export function getShoppingList(): Promise<{ items: ShoppingItem[] }> {
   return request('/shopping-list')
+}
+
+export function addShoppingItem(name: string): Promise<{ item: ShoppingItem }> {
+  return request('/shopping-list', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  })
+}
+
+export function toggleShoppingItem(id: string, checked: boolean): Promise<{ id: string; checked: boolean }> {
+  return request(`/shopping-list?id=${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ checked }),
+  })
+}
+
+export function deleteShoppingItem(id: string): Promise<{ deleted: string }> {
+  return request(`/shopping-list?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
 
 export function getRecipe(id: string): Promise<{ recipe: Recipe }> {

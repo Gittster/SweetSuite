@@ -5,6 +5,7 @@ import TabBar from './components/TabBar'
 import CalendarView from './components/CalendarView'
 import ChoresView from './components/ChoresView'
 import MealsView from './components/MealsView'
+import ShoppingView from './components/ShoppingView'
 import PhotosView from './components/PhotosView'
 import PhotosScreensaver from './components/PhotosScreensaver'
 import SetupView from './components/SetupView'
@@ -16,6 +17,7 @@ const TABS: { id: TabId; render: () => React.ReactNode }[] = [
   { id: 'calendar', render: () => <CalendarView /> },
   { id: 'chores', render: () => <ChoresView /> },
   { id: 'meals', render: () => <MealsView /> },
+  { id: 'shopping', render: () => <ShoppingView /> },
   { id: 'photos', render: () => <PhotosView /> },
   { id: 'setup', render: () => <SetupView /> },
 ]

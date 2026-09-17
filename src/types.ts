@@ -25,4 +25,4 @@ export interface Task {
   dueDate?: string // ISO date
 }
 
-export type TabId = 'calendar' | 'chores' | 'meals' | 'photos' | 'setup'
+export type TabId = 'calendar' | 'chores' | 'meals' | 'shopping' | 'photos' | 'setup'

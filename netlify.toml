@@ -26,3 +26,6 @@
 
 [functions.app-events]
   external_node_modules = ["@netlify/blobs"]
+
+[functions.shopping-list]
+  external_node_modules = ["@netlify/blobs"]

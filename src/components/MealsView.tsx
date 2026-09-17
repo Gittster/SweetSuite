@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { format, parseISO } from 'date-fns'
-import { getMealPlan, getShoppingList, type PlannedMeal, type ShoppingIngredient } from '../api/erinsList'
+import { getMealPlan, type PlannedMeal } from '../api/erinsList'
 import RecipeView from './RecipeView'
 import './MealsView.css'
 
 export default function MealsView() {
   const [meals, setMeals] = useState<PlannedMeal[] | null>(null)
-  const [ingredients, setIngredients] = useState<ShoppingIngredient[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [openRecipeId, setOpenRecipeId] = useState<string | null>(null)
@@ -14,11 +13,8 @@ export default function MealsView() {
   const load = () => {
     setLoading(true)
     setError(null)
-    Promise.all([getMealPlan(), getShoppingList()])
-      .then(([planRes, shoppingRes]) => {
-        setMeals(planRes.meals)
-        setIngredients(shoppingRes.ingredients)
-      })
+    getMealPlan()
+      .then((res) => setMeals(res.meals))
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false))
   }
@@ -36,16 +32,11 @@ export default function MealsView() {
     return [...byDate.entries()].sort(([a], [b]) => a.localeCompare(b))
   }, [meals])
 
-  const sortedIngredients = useMemo(() => {
-    if (!ingredients) return []
-    return [...ingredients].sort((a, b) => Number(!!a.checked) - Number(!!b.checked))
-  }, [ingredients])
-
   return (
     <div className="meals-view">
       <header className="meals-header">
         <h2>Meals</h2>
-        <p className="meals-subtitle">This week's plan &amp; shopping list from ErinsList</p>
+        <p className="meals-subtitle">This week's plan from ErinsList</p>
       </header>
 
       <div className="meals-body">
@@ -58,44 +49,29 @@ export default function MealsView() {
         )}
 
         {!loading && !error && (
-          <>
-            <section className="meals-section">
-              <h3>Planned meals</h3>
-              {mealsByDate.length === 0 && <p className="empty-state">No meals planned yet.</p>}
-              <div className="meals-plan-list">
-                {mealsByDate.map(([date, dayMeals]) => (
-                  <div key={date} className="meals-plan-day">
-                    <div className="meals-plan-date">{format(parseISO(date), 'EEE, MMM d')}</div>
-                    <div className="meals-plan-tiles">
-                      {dayMeals.map((meal) => (
-                        <button
-                          key={meal.id}
-                          type="button"
-                          className="meals-plan-tile"
-                          disabled={!meal.recipeId}
-                          onClick={() => meal.recipeId && setOpenRecipeId(meal.recipeId)}
-                        >
-                          {meal.recipeName || 'Untitled meal'}
-                        </button>
-                      ))}
-                    </div>
+          <section className="meals-section">
+            {mealsByDate.length === 0 && <p className="empty-state">No meals planned yet.</p>}
+            <div className="meals-plan-list">
+              {mealsByDate.map(([date, dayMeals]) => (
+                <div key={date} className="meals-plan-day">
+                  <div className="meals-plan-date">{format(parseISO(date), 'EEE, MMM d')}</div>
+                  <div className="meals-plan-tiles">
+                    {dayMeals.map((meal) => (
+                      <button
+                        key={meal.id}
+                        type="button"
+                        className="meals-plan-tile"
+                        disabled={!meal.recipeId}
+                        onClick={() => meal.recipeId && setOpenRecipeId(meal.recipeId)}
+                      >
+                        {meal.recipeName || 'Untitled meal'}
+                      </button>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="meals-section">
-              <h3>Shopping list</h3>
-              {sortedIngredients.length === 0 && <p className="empty-state">Shopping list is empty.</p>}
-              <ul className="shopping-list">
-                {sortedIngredients.map((ing, i) => (
-                  <li key={i} className={ing.checked ? 'checked' : ''}>
-                    {[ing.quantity, ing.unit, ing.name].filter(Boolean).join(' ')}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
       </div>
 

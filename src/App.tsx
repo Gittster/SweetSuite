@@ -12,6 +12,13 @@ import { useIdleTimer } from './hooks/useIdleTimer'
 import type { TabId } from './types'
 
 const IDLE_TIMEOUT_MS = 90_000
+const TABS: { id: TabId; render: () => React.ReactNode }[] = [
+  { id: 'calendar', render: () => <CalendarView /> },
+  { id: 'chores', render: () => <ChoresView /> },
+  { id: 'meals', render: () => <MealsView /> },
+  { id: 'photos', render: () => <PhotosView /> },
+  { id: 'setup', render: () => <SetupView /> },
+]
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabId>('calendar')
@@ -21,11 +28,13 @@ function App() {
     <AuthGate>
       <div className="app-shell">
         <main className="app-content">
-          {activeTab === 'calendar' && <CalendarView />}
-          {activeTab === 'chores' && <ChoresView />}
-          {activeTab === 'meals' && <MealsView />}
-          {activeTab === 'photos' && <PhotosView />}
-          {activeTab === 'setup' && <SetupView />}
+          {/* Every tab stays mounted once visited, so switching back to it is instant
+              instead of re-fetching from the network each time. */}
+          {TABS.map(({ id, render }) => (
+            <div key={id} style={{ display: activeTab === id ? 'contents' : 'none' }}>
+              {render()}
+            </div>
+          ))}
         </main>
         <TabBar active={activeTab} onChange={setActiveTab} />
         {isIdle && <PhotosScreensaver onWake={wake} />}

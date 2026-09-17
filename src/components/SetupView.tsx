@@ -36,15 +36,15 @@ export default function SetupView() {
   }
 
   const refreshAuthState = () => {
+    // Fire both in parallel rather than waiting for auth-status before starting
+    // calendar-list — calendar-list already handles "not connected yet" itself.
     getAuthStatus().then((res) => {
       setEmail(res.email ?? null)
       setGoogleConnected(!!res.googleConnected)
-      if (res.googleConnected) {
-        getCalendarList().then((r) => setCalendars(r.calendars)).catch(() => setCalendars(null))
-      } else {
-        setCalendars(null)
-      }
     })
+    getCalendarList()
+      .then((r) => setCalendars(r.calendars))
+      .catch(() => setCalendars(null))
   }
 
   useEffect(() => {

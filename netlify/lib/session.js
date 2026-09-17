@@ -1,4 +1,4 @@
-const { createToken, verifyToken } = require('./token');
+import { createToken, verifyToken } from './token.js';
 
 const COOKIE_NAME = 'sweetsuite_session';
 const SESSION_TTL_MS = 180 * 24 * 60 * 60 * 1000; // 180 days — this is a kiosk, sign in once
@@ -19,30 +19,23 @@ function parseCookies(event) {
   return cookies;
 }
 
-function getSession(event) {
+export function getSession(event) {
   const cookies = parseCookies(event);
   const claims = verifyToken(cookies[COOKIE_NAME], secret());
   if (!claims || typeof claims.exp !== 'number' || claims.exp <= Date.now()) return null;
   return claims;
 }
 
-function isAuthenticated(event) {
+export function isAuthenticated(event) {
   return !!getSession(event);
 }
 
-function setSessionCookieHeader(email) {
+export function setSessionCookieHeader(email) {
   const token = createToken({ email, exp: Date.now() + SESSION_TTL_MS }, secret());
   const maxAge = Math.floor(SESSION_TTL_MS / 1000);
   return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
 }
 
-function clearSessionCookieHeader() {
+export function clearSessionCookieHeader() {
   return `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
 }
-
-module.exports = {
-  getSession,
-  isAuthenticated,
-  setSessionCookieHeader,
-  clearSessionCookieHeader,
-};

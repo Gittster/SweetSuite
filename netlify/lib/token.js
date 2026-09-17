@@ -1,19 +1,19 @@
 // Minimal dependency-free signed token: base64url(payload) + "." + HMAC-SHA256 signature.
 // Deliberately simpler than JWT (one fixed algorithm, no header to spoof) — used both for
 // the Setup session cookie and the short-lived Google OAuth CSRF state parameter.
-const crypto = require('crypto');
+import crypto from 'node:crypto';
 
 function sign(payload, secret) {
   if (!secret) throw new Error('Missing signing secret.');
   return crypto.createHmac('sha256', secret).update(payload).digest('base64url');
 }
 
-function createToken(data, secret) {
+export function createToken(data, secret) {
   const payload = Buffer.from(JSON.stringify(data)).toString('base64url');
   return `${payload}.${sign(payload, secret)}`;
 }
 
-function verifyToken(token, secret) {
+export function verifyToken(token, secret) {
   if (!token || typeof token !== 'string') return null;
   const [payload, sig] = token.split('.');
   if (!payload || !sig) return null;
@@ -37,5 +37,3 @@ function verifyToken(token, secret) {
     return null;
   }
 }
-
-module.exports = { createToken, verifyToken };

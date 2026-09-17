@@ -1,9 +1,9 @@
-const { createToken } = require('../lib/token');
+import { createToken } from '../lib/token.js';
 
 const SCOPE = 'openid email';
 const STATE_TTL_MS = 10 * 60 * 1000; // 10 minutes — just long enough for the account chooser
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   // No CORS headers: this responds with a 302 that the browser navigates to
   // directly, not a fetch() call.
   if (event.httpMethod !== 'GET') {

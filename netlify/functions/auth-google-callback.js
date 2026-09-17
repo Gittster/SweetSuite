@@ -1,13 +1,13 @@
-const { verifyToken } = require('../lib/token');
-const { setSessionCookieHeader } = require('../lib/session');
-const { isEmailAllowed } = require('../lib/allowedEmails');
+import { verifyToken } from '../lib/token.js';
+import { setSessionCookieHeader } from '../lib/session.js';
+import { isEmailAllowed } from '../lib/allowedEmails.js';
 
 function redirectTo(path, extraHeaders = {}) {
   const base = (process.env.FRONTEND_ORIGIN || '').replace(/\/$/, '');
   return { statusCode: 302, headers: { Location: `${base}${path}`, ...extraHeaders }, body: '' };
 }
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method Not Allowed. Please use GET.' };
   }

@@ -1,7 +1,7 @@
-const { corsHeaders } = require('../lib/cors');
-const { clearSessionCookieHeader } = require('../lib/session');
+import { corsHeaders } from '../lib/cors.js';
+import { clearSessionCookieHeader } from '../lib/session.js';
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   const headers = corsHeaders();
 
   if (event.httpMethod === 'OPTIONS') {

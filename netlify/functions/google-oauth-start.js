@@ -1,17 +1,17 @@
-const { createToken } = require('../lib/token');
-const { isAuthenticated } = require('../lib/session');
+import { createToken } from '../lib/token.js';
+import { isAuthenticated } from '../lib/session.js';
 
 const SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
 const STATE_TTL_MS = 10 * 60 * 1000; // 10 minutes — just long enough for the consent screen
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   // No CORS headers here: this responds with a 302 redirect that the browser
   // navigates to directly (not a fetch() call), so CORS doesn't apply.
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method Not Allowed. Please use GET.' };
   }
   if (!isAuthenticated(event)) {
-    return { statusCode: 401, body: 'Not authenticated. Open Setup and enter the PIN first.' };
+    return { statusCode: 401, body: 'Not authenticated. Sign in first.' };
   }
 
   const { GOOGLE_CLIENT_ID, GOOGLE_CALENDAR_REDIRECT_URI, SESSION_SECRET } = process.env;

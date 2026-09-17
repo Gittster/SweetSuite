@@ -2,7 +2,7 @@ const BASE_URL = process.env.ERINSLIST_BASE_URL || 'https://erinslist.netlify.ap
 
 // Server-to-server call to ErinsList's own read-only API. The API key lives
 // only here, on this backend — the browser never sees it.
-async function fetchErinsList(path) {
+export async function fetchErinsList(path) {
   const apiKey = process.env.ERINSLIST_API_KEY;
   if (!apiKey) throw new Error('ERINSLIST_API_KEY is not configured.');
 
@@ -18,5 +18,3 @@ async function fetchErinsList(path) {
   }
   return data;
 }
-
-module.exports = { fetchErinsList };

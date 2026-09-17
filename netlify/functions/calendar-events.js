@@ -1,6 +1,6 @@
-const { corsHeaders } = require('../lib/cors');
-const { isAuthenticated } = require('../lib/session');
-const { store } = require('../lib/store');
+import { corsHeaders } from '../lib/cors.js';
+import { isAuthenticated } from '../lib/session.js';
+import { store } from '../lib/store.js';
 
 async function getAccessToken(refreshToken) {
   const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = process.env;
@@ -19,7 +19,7 @@ async function getAccessToken(refreshToken) {
   return data.access_token;
 }
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   const headers = corsHeaders();
 
   if (event.httpMethod === 'OPTIONS') {

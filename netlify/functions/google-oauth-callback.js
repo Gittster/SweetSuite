@@ -1,12 +1,12 @@
-const { verifyToken } = require('../lib/token');
-const { store } = require('../lib/store');
+import { verifyToken } from '../lib/token.js';
+import { store } from '../lib/store.js';
 
 function redirectTo(path) {
   const base = (process.env.FRONTEND_ORIGIN || '').replace(/\/$/, '');
   return { statusCode: 302, headers: { Location: `${base}${path}` }, body: '' };
 }
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method Not Allowed. Please use GET.' };
   }

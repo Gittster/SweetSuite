@@ -1,8 +1,8 @@
-const { corsHeaders } = require('../lib/cors');
-const { isAuthenticated } = require('../lib/session');
-const { fetchErinsList } = require('../lib/erinsList');
+import { corsHeaders } from '../lib/cors.js';
+import { isAuthenticated } from '../lib/session.js';
+import { fetchErinsList } from '../lib/erinsList.js';
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   const headers = corsHeaders();
 
   if (event.httpMethod === 'OPTIONS') {

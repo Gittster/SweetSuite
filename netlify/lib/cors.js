@@ -1,6 +1,6 @@
 // Cross-site cookies (Setup session) require an exact origin match, not "*" — and
 // Access-Control-Allow-Credentials must be "true" for the browser to send/accept the cookie.
-function corsHeaders(extra = {}) {
+export function corsHeaders(extra = {}) {
   const origin = process.env.CONTEXT === 'dev' ? '*' : (process.env.FRONTEND_ORIGIN || '');
   return {
     'Access-Control-Allow-Origin': origin,
@@ -11,5 +11,3 @@ function corsHeaders(extra = {}) {
     ...extra,
   };
 }
-
-module.exports = { corsHeaders };

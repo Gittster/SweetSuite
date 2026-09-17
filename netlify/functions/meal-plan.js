@@ -1,5 +1,5 @@
 import { corsHeaders } from '../lib/cors.js';
-import { isAuthenticated } from '../lib/session.js';
+import { getSession } from '../lib/session.js';
 import { fetchErinsList } from '../lib/erinsList.js';
 
 export const handler = async (event) => {
@@ -11,7 +11,8 @@ export const handler = async (event) => {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed. Please use GET.' }) };
   }
-  if (!isAuthenticated(event)) {
+  const session = getSession(event);
+  if (!session) {
     return { statusCode: 401, headers, body: JSON.stringify({ error: 'Not authenticated.' }) };
   }
 
@@ -22,7 +23,7 @@ export const handler = async (event) => {
   const qs = query.toString();
 
   try {
-    const data = await fetchErinsList(`/get-meal-plan${qs ? `?${qs}` : ''}`);
+    const data = await fetchErinsList(`/get-meal-plan${qs ? `?${qs}` : ''}`, session.email);
     return { statusCode: 200, headers, body: JSON.stringify(data) };
   } catch (err) {
     console.error('meal-plan.js: Failed to fetch from ErinsList:', err);

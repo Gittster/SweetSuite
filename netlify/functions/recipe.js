@@ -1,5 +1,5 @@
 import { corsHeaders } from '../lib/cors.js';
-import { isAuthenticated } from '../lib/session.js';
+import { getSession } from '../lib/session.js';
 import { fetchErinsList } from '../lib/erinsList.js';
 
 export const handler = async (event) => {
@@ -11,7 +11,8 @@ export const handler = async (event) => {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed. Please use GET.' }) };
   }
-  if (!isAuthenticated(event)) {
+  const session = getSession(event);
+  if (!session) {
     return { statusCode: 401, headers, body: JSON.stringify({ error: 'Not authenticated.' }) };
   }
 
@@ -21,7 +22,7 @@ export const handler = async (event) => {
   }
 
   try {
-    const data = await fetchErinsList(`/get-recipe?id=${encodeURIComponent(recipeId)}`);
+    const data = await fetchErinsList(`/get-recipe?id=${encodeURIComponent(recipeId)}`, session.email);
     return { statusCode: 200, headers, body: JSON.stringify(data) };
   } catch (err) {
     const statusCode = err.statusCode === 404 ? 404 : 502;

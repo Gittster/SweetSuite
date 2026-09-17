@@ -15,11 +15,13 @@ export default function RecipeView({ recipeId, onClose }: RecipeViewProps) {
   const [recipe, setRecipe] = useState<Recipe | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setError(null)
+    setCheckedIngredients(new Set())
     getRecipe(recipeId)
       .then(({ recipe }) => {
         if (!cancelled) setRecipe(recipe)
@@ -35,6 +37,15 @@ export default function RecipeView({ recipeId, onClose }: RecipeViewProps) {
     }
   }, [recipeId])
 
+  const toggleIngredient = (i: number) => {
+    setCheckedIngredients((prev) => {
+      const next = new Set(prev)
+      if (next.has(i)) next.delete(i)
+      else next.add(i)
+      return next
+    })
+  }
+
   return (
     <div className="recipe-view">
       <button type="button" className="recipe-view-close" onClick={onClose} aria-label="Close recipe">
@@ -46,9 +57,6 @@ export default function RecipeView({ recipeId, onClose }: RecipeViewProps) {
 
       {recipe && (
         <div className="recipe-view-content">
-          {recipe.imageUrl && (
-            <div className="recipe-view-image" style={{ backgroundImage: `url(${recipe.imageUrl})` }} />
-          )}
           <div className="recipe-view-body">
             <h2>{recipe.name}</h2>
             {recipe.tags.length > 0 && (
@@ -64,21 +72,26 @@ export default function RecipeView({ recipeId, onClose }: RecipeViewProps) {
                 <h3>Ingredients</h3>
                 <ul className="recipe-view-ingredients">
                   {recipe.ingredients.map((ing, i) => (
-                    <li key={i}>{formatIngredient(ing)}</li>
+                    <li key={i} className={checkedIngredients.has(i) ? 'checked' : ''}>
+                      <button type="button" onClick={() => toggleIngredient(i)}>
+                        <span className="recipe-view-ingredient-check" aria-hidden="true" />
+                        {formatIngredient(ing)}
+                      </button>
+                    </li>
                   ))}
                 </ul>
               </section>
               <section>
                 <h3>Instructions</h3>
-                <div className="recipe-view-instructions">
+                <ol className="recipe-view-instructions">
                   {recipe.instructions
                     .split('\n')
                     .map((line) => line.trim())
                     .filter(Boolean)
                     .map((line, i) => (
-                      <p key={i}>{line}</p>
+                      <li key={i}>{line}</li>
                     ))}
-                </div>
+                </ol>
               </section>
             </div>
           </div>

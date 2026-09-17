@@ -4,7 +4,10 @@ import { getMealPlan, type PlannedMeal } from '../api/erinsList'
 import RecipeView from './RecipeView'
 import './MealsView.css'
 
+type MealsSubTab = 'planning' | 'recipes'
+
 export default function MealsView() {
+  const [subTab, setSubTab] = useState<MealsSubTab>('planning')
   const [meals, setMeals] = useState<PlannedMeal[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -32,11 +35,37 @@ export default function MealsView() {
     return [...byDate.entries()].sort(([a], [b]) => a.localeCompare(b))
   }, [meals])
 
+  const uniqueRecipes = useMemo(() => {
+    if (!meals) return []
+    const byId = new Map<string, string>()
+    for (const meal of meals) {
+      if (meal.recipeId && !byId.has(meal.recipeId)) {
+        byId.set(meal.recipeId, meal.recipeName || 'Untitled recipe')
+      }
+    }
+    return [...byId.entries()].sort(([, a], [, b]) => a.localeCompare(b))
+  }, [meals])
+
   return (
     <div className="meals-view">
       <header className="meals-header">
         <h2>Meals</h2>
-        <p className="meals-subtitle">This week's plan from ErinsList</p>
+        <div className="meals-subtabs">
+          <button
+            type="button"
+            className={subTab === 'planning' ? 'active' : ''}
+            onClick={() => setSubTab('planning')}
+          >
+            Planning
+          </button>
+          <button
+            type="button"
+            className={subTab === 'recipes' ? 'active' : ''}
+            onClick={() => setSubTab('recipes')}
+          >
+            Recipes
+          </button>
+        </div>
       </header>
 
       <div className="meals-body">
@@ -48,7 +77,7 @@ export default function MealsView() {
           </div>
         )}
 
-        {!loading && !error && (
+        {!loading && !error && subTab === 'planning' && (
           <section className="meals-section">
             {mealsByDate.length === 0 && <p className="empty-state">No meals planned yet.</p>}
             <div className="meals-plan-list">
@@ -69,6 +98,24 @@ export default function MealsView() {
                     ))}
                   </div>
                 </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {!loading && !error && subTab === 'recipes' && (
+          <section className="meals-section">
+            {uniqueRecipes.length === 0 && <p className="empty-state">No recipes in your plan yet.</p>}
+            <div className="meals-recipes-grid">
+              {uniqueRecipes.map(([id, name]) => (
+                <button
+                  key={id}
+                  type="button"
+                  className="meals-recipe-tile"
+                  onClick={() => setOpenRecipeId(id)}
+                >
+                  {name}
+                </button>
               ))}
             </div>
           </section>

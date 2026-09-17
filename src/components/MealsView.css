@@ -13,12 +13,32 @@
 
 .meals-header h2 {
   font-size: 22px;
+  margin-bottom: 12px;
 }
 
-.meals-subtitle {
-  color: var(--text-muted);
+.meals-subtabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg);
+  border-radius: 999px;
+}
+
+.meals-subtabs button {
+  border: none;
+  background: none;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-weight: 600;
   font-size: 14px;
-  margin-top: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.meals-subtabs button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
 }
 
 .meals-body {
@@ -91,4 +111,22 @@
 .meals-plan-tile:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+.meals-recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.meals-recipe-tile {
+  padding: 16px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  text-align: left;
 }

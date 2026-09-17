@@ -66,8 +66,21 @@ export default function ShoppingView() {
   return (
     <div className="shopping-view">
       <header className="shopping-header">
-        <h2>Shopping List</h2>
-        <p className="shopping-subtitle">From ErinsList, plus anything you add here</p>
+        <div className="shopping-header-top">
+          <div>
+            <h2>Shopping List</h2>
+            <p className="shopping-subtitle">From ErinsList, plus anything you add here</p>
+          </div>
+        </div>
+        <form className="shopping-add-form" onSubmit={handleAdd}>
+          <input
+            value={newItemName}
+            onChange={(e) => setNewItemName(e.target.value)}
+            placeholder="Add an item…"
+            aria-label="New shopping item"
+          />
+          <button type="submit" disabled={!newItemName.trim() || adding}>Add</button>
+        </form>
       </header>
 
       <div className="shopping-body">
@@ -107,16 +120,6 @@ export default function ShoppingView() {
                 </li>
               ))}
             </ul>
-
-            <form className="shopping-add-form" onSubmit={handleAdd}>
-              <input
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                placeholder="Add an item…"
-                aria-label="New shopping item"
-              />
-              <button type="submit" disabled={!newItemName.trim() || adding}>Add</button>
-            </form>
           </>
         )}
       </div>

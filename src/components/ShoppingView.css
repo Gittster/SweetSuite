@@ -11,6 +11,10 @@
   flex-shrink: 0;
 }
 
+.shopping-header-top {
+  margin-bottom: 12px;
+}
+
 .shopping-header h2 {
   font-size: 22px;
 }
@@ -152,7 +156,7 @@
   border-radius: 10px;
   border: 1px solid var(--border);
   font: inherit;
-  background: var(--surface);
+  background: var(--bg);
 }
 
 .shopping-add-form button {

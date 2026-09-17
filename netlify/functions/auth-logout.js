@@ -1,5 +1,5 @@
-const { corsHeaders } = require('../../lib/cors');
-const { clearSessionCookieHeader } = require('../../lib/session');
+const { corsHeaders } = require('../lib/cors');
+const { clearSessionCookieHeader } = require('../lib/session');
 
 exports.handler = async (event) => {
   const headers = corsHeaders();

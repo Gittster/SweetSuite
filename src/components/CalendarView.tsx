@@ -16,7 +16,7 @@ import {
   subMonths,
   subWeeks,
 } from 'date-fns'
-import { getCalendarEvents, isBackendConfigured } from '../api/backend'
+import { getCalendarEvents } from '../api/backend'
 import { events as mockEvents, people } from '../data/mockData'
 import type { CalendarEvent } from '../types'
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
@@ -199,8 +199,6 @@ export default function CalendarView() {
   const [usingLiveData, setUsingLiveData] = useState(false)
 
   useEffect(() => {
-    if (!isBackendConfigured()) return
-
     const start = addDays(new Date(), -FETCH_RANGE_DAYS_BACK).toISOString()
     const end = addDays(new Date(), FETCH_RANGE_DAYS_FORWARD).toISOString()
     getCalendarEvents(start, end)

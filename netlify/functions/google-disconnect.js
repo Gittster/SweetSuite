@@ -1,6 +1,6 @@
-const { corsHeaders } = require('../../lib/cors');
-const { isAuthenticated } = require('../../lib/session');
-const { store } = require('../../lib/store');
+const { corsHeaders } = require('../lib/cors');
+const { isAuthenticated } = require('../lib/session');
+const { store } = require('../lib/store');
 
 exports.handler = async (event) => {
   const headers = corsHeaders();

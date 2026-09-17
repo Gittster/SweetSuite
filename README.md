@@ -1,79 +1,96 @@
 # SweetSuite
 
 A wall-mounted family dashboard — shared calendar (Google Calendar), chores,
-meal planning (via [ErinsList](https://erinslist.netlify.app)'s API), and an
+meal planning (via [ErinsList](https://erinslist.netlify.app)), and an
 ambient photo screensaver. Built as a browser-first web app so it can be
 developed and tested on any machine before it ever touches a Raspberry Pi
 kiosk.
 
 See the design doc (shared separately) for full scope and hardware plans.
 
-## Status
+## Architecture
 
-Phase 1: frontend on GitHub Pages, plus a small dedicated backend
-(`backend/`, its own Netlify site) that holds the Google Calendar OAuth
-token and the Setup PIN. Meals already talks to ErinsList's own backend.
-Photos is local-folder-only, no backend needed. SQLite / on-device sync
-described in the design doc's section 5 still comes later, once there's a
-Pi to run it on.
+One Netlify site serves both the static frontend (`src/`, built with Vite)
+and the backend (`netlify/functions/`) — same origin, so the browser never
+needs to hold any secret. Everything it does is gated by one HttpOnly
+session cookie, issued after signing in with an approved Google account.
 
-## Repo layout
+- **Sign-in** (`auth-google-start`/`auth-google-callback`): lightweight
+  Google OAuth requesting only `openid email`, checked against
+  `ALLOWED_EMAILS`. This gates the whole app, not just Setup.
+- **Google Calendar connect** (`google-oauth-start`/`google-oauth-callback`,
+  Setup tab): a separate, deliberate action requesting `calendar.readonly` +
+  offline access. Kept distinct from sign-in so one household member signing
+  in doesn't silently swap out the calendar someone else connected — there's
+  one shared family calendar regardless of who's currently signed in.
+- **ErinsList proxy** (`meal-plan`, `shopping-list`, `recipe`): server-to-server
+  calls holding the ErinsList API key here, never in the browser.
+- **Photos**: the browser's native folder picker (File System Access API) —
+  no accounts, no backend involved at all.
 
-- `src/` — the frontend (Vite + React), deployed to GitHub Pages.
-- `backend/` — SweetSuite's own backend (Setup PIN, Google OAuth, calendar
-  events), deployed as a **second, separate Netlify site** from this same
-  repo. See `backend/README.md` for full setup steps.
+No API keys, PINs, or secrets of any kind ship in the built JS bundle.
 
 ## Local development
 
 ```bash
 npm install
-cp .env.example .env   # fill in the values below
 npm run dev
 ```
 
-Opens at `http://localhost:5173`. Works in any modern browser — no Pi or
-touchscreen required. Chrome or Edge are needed for the Photos folder picker
-(File System Access API); other tabs work everywhere.
+Opens at `http://localhost:5173` for frontend-only work (Calendar/Chores/
+Photos UI). Sign-in and the API endpoints need Netlify Functions, which
+plain `vite dev` doesn't run — for full-stack local testing, use the
+[Netlify CLI](https://docs.netlify.com/cli/get-started/) instead:
 
-## Setup tab: PIN-gated connections dashboard
+```bash
+npm install -g netlify-cli
+netlify link      # after creating the site below
+netlify dev
+```
 
-The **Setup** tab (gear icon) is where the household connects/disconnects
-Google Calendar and picks the local photos folder — the single place that
-"manages all these connections," as opposed to hopping between two
-different Netlify dashboards. It's gated by a shared PIN (not a full login,
-per the design doc's no-accounts goal) so the kids can see it exists but
-can't reconfigure anything without it.
+## Deploying
 
-## Environment variables
+1. **Make the GitHub repo private** (Settings → General → Danger Zone →
+   Change visibility). Since everything sensitive now lives server-side
+   behind sign-in, this isn't strictly required for security — but it's
+   good hygiene, and there's no more GitHub Pages workflow that needed the
+   repo to stay public.
+2. In Netlify: **Add new site → Import an existing project** → this repo.
+   `netlify.toml` at the root already has the build command, publish
+   directory, and function config — no manual build settings needed.
+3. Set the environment variables below on that site, then deploy.
 
-All of these go in `.env` for local dev, or as GitHub Actions repo secrets
-(**Settings → Secrets and variables → Actions → Secrets**, not Environment
-secrets) for the deployed build — the workflow injects them at build time.
+## Environment variables (Netlify site settings)
 
 | Variable | Purpose |
 |---|---|
-| `VITE_SWEETSUITE_API_BASE` | ErinsList's function base URL. Defaults to production if unset. |
-| `VITE_SWEETSUITE_API_KEY` | Shared secret for the Meals tab's calls to ErinsList. Must match `SWEETSUITE_API_KEY` set in the `recipe` repo's Netlify env vars. |
-| `VITE_BACKEND_URL` | URL of the `backend/` Netlify site (see below). Leave unset to run without a backend — Calendar falls back to demo data, Setup can't manage Google Calendar. |
-| `VITE_BACKEND_API_KEY` | Shared secret for reading calendar events. Must match `BACKEND_API_KEY` on the backend Netlify site. **Use a different value than `VITE_SWEETSUITE_API_KEY`** — these are two independent systems, and a leak of one shouldn't compromise the other. |
+| `SESSION_SECRET` | Long random string signing the session cookie and OAuth CSRF state. Generate with `openssl rand -hex 32`. |
+| `ALLOWED_EMAILS` | Comma-separated Google account emails allowed to sign in (e.g. `you@gmail.com,partner@gmail.com`). |
+| `FRONTEND_ORIGIN` | This site's own URL, e.g. `https://sweetsuite.netlify.app`. Used for CORS and where OAuth redirects land back. |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | From one Google Cloud OAuth client shared by both Google flows below. |
+| `GOOGLE_AUTH_REDIRECT_URI` | `<FRONTEND_ORIGIN>/.netlify/functions/auth-google-callback` — the sign-in flow's redirect URI. |
+| `GOOGLE_CALENDAR_REDIRECT_URI` | `<FRONTEND_ORIGIN>/.netlify/functions/google-oauth-callback` — the calendar-connect flow's redirect URI. Must differ from the one above. |
+| `GOOGLE_CALENDAR_ID` | Optional, defaults to `primary`. |
+| `ERINSLIST_API_KEY` | Must match `SWEETSUITE_API_KEY` set in the `recipe` repo's Netlify env vars. |
+| `ERINSLIST_BASE_URL` | Optional, defaults to `https://erinslist.netlify.app/.netlify/functions`. |
 
-Every one of these keys ends up embedded in the built JS bundle, since
-GitHub Pages is static hosting with no server to keep them hidden behind.
-That's an acceptable trade-off for a private single-household kiosk — the
-keys only grant read access to meal/calendar data, never write access or
-account credentials (those live server-side in `backend/`, never shipped to
-the browser). Not something to carry over if this ever became a multi-user
-or public deployment.
+## Setting up the Google OAuth client
 
-## Build
+1. [Google Cloud Console](https://console.cloud.google.com/) → create/select a project.
+2. **APIs & Services → Library** → enable the **Google Calendar API**.
+3. **APIs & Services → OAuth consent screen** → **External**, minimum required
+   fields, add every email from `ALLOWED_EMAILS` under **Test users**.
+   Personal use like this never needs Google's verification review as long
+   as it stays in "Testing" mode.
+4. **APIs & Services → Credentials → Create Credentials → OAuth client ID**,
+   type **Web application**. Under **Authorized redirect URIs**, add
+   *both* `GOOGLE_AUTH_REDIRECT_URI` and `GOOGLE_CALENDAR_REDIRECT_URI` from
+   above.
+5. Copy the **Client ID** and **Client Secret** into the site's env vars.
 
-```bash
-npm run build
-```
+## Setup tab
 
-## Deploying to GitHub Pages
-
-A workflow at `.github/workflows/deploy.yml` builds and deploys `main` to
-GitHub Pages automatically. In the repo's **Settings → Pages**, set the
-source to **GitHub Actions** (not "Deploy from a branch") for this to work.
+The gear-icon tab is where the household connects/disconnects Google
+Calendar and picks the local photos folder. It's reachable by anyone signed
+in — there's no separate PIN layer on top, since sign-in itself is already
+the access control for the whole app.

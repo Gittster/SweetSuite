@@ -1,5 +1,6 @@
-const API_BASE = import.meta.env.VITE_SWEETSUITE_API_BASE || 'https://erinslist.netlify.app/.netlify/functions'
-const API_KEY = import.meta.env.VITE_SWEETSUITE_API_KEY as string | undefined
+// Calls our own backend's proxy endpoints (netlify/functions/meal-plan.js etc.),
+// which hold the ErinsList API key server-side — the browser never sees it,
+// only the session cookie that already gates everything else.
 
 export interface PlannedMeal {
   id: string
@@ -26,9 +27,7 @@ export interface Recipe {
 }
 
 async function request<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: API_KEY ? { 'X-SweetSuite-Key': API_KEY } : {},
-  })
+  const res = await fetch(`/.netlify/functions${path}`, { credentials: 'include' })
   if (!res.ok) {
     const body = await res.json().catch(() => null)
     throw new Error(body?.error || `Request failed (${res.status})`)
@@ -41,13 +40,13 @@ export function getMealPlan(start?: string, end?: string): Promise<{ meals: Plan
   if (start) params.set('start', start)
   if (end) params.set('end', end)
   const query = params.toString()
-  return request(`/get-meal-plan${query ? `?${query}` : ''}`)
+  return request(`/meal-plan${query ? `?${query}` : ''}`)
 }
 
 export function getShoppingList(): Promise<{ ingredients: ShoppingIngredient[] }> {
-  return request('/get-shopping-list')
+  return request('/shopping-list')
 }
 
 export function getRecipe(id: string): Promise<{ recipe: Recipe }> {
-  return request(`/get-recipe?id=${encodeURIComponent(id)}`)
+  return request(`/recipe?id=${encodeURIComponent(id)}`)
 }

@@ -1,5 +1,5 @@
-const { verifyToken } = require('../../lib/token');
-const { store } = require('../../lib/store');
+const { verifyToken } = require('../lib/token');
+const { store } = require('../lib/store');
 
 function redirectTo(path) {
   const base = (process.env.FRONTEND_ORIGIN || '').replace(/\/$/, '');
@@ -12,13 +12,13 @@ exports.handler = async (event) => {
   }
 
   const { code, state, error: googleError } = event.queryStringParameters || {};
-  const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI, SESSION_SECRET } = process.env;
+  const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALENDAR_REDIRECT_URI, SESSION_SECRET } = process.env;
 
   if (googleError) {
     console.error('google-oauth-callback.js: Google returned an error:', googleError);
     return redirectTo('/?setup=error');
   }
-  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_REDIRECT_URI || !SESSION_SECRET) {
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_CALENDAR_REDIRECT_URI || !SESSION_SECRET) {
     console.error('google-oauth-callback.js: Missing required environment variables.');
     return redirectTo('/?setup=error');
   }
@@ -35,7 +35,7 @@ exports.handler = async (event) => {
         code,
         client_id: GOOGLE_CLIENT_ID,
         client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: GOOGLE_REDIRECT_URI,
+        redirect_uri: GOOGLE_CALENDAR_REDIRECT_URI,
         grant_type: 'authorization_code',
       }),
     });

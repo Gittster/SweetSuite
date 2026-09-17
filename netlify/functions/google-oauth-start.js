@@ -1,5 +1,5 @@
-const { createToken } = require('../../lib/token');
-const { isAuthenticated } = require('../../lib/session');
+const { createToken } = require('../lib/token');
+const { isAuthenticated } = require('../lib/session');
 
 const SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
 const STATE_TTL_MS = 10 * 60 * 1000; // 10 minutes — just long enough for the consent screen
@@ -14,9 +14,9 @@ exports.handler = async (event) => {
     return { statusCode: 401, body: 'Not authenticated. Open Setup and enter the PIN first.' };
   }
 
-  const { GOOGLE_CLIENT_ID, GOOGLE_REDIRECT_URI, SESSION_SECRET } = process.env;
-  if (!GOOGLE_CLIENT_ID || !GOOGLE_REDIRECT_URI || !SESSION_SECRET) {
-    console.error('google-oauth-start.js: Missing GOOGLE_CLIENT_ID, GOOGLE_REDIRECT_URI, or SESSION_SECRET.');
+  const { GOOGLE_CLIENT_ID, GOOGLE_CALENDAR_REDIRECT_URI, SESSION_SECRET } = process.env;
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CALENDAR_REDIRECT_URI || !SESSION_SECRET) {
+    console.error('google-oauth-start.js: Missing GOOGLE_CLIENT_ID, GOOGLE_CALENDAR_REDIRECT_URI, or SESSION_SECRET.');
     return { statusCode: 500, body: 'Google Calendar connection is not configured.' };
   }
 
@@ -24,7 +24,7 @@ exports.handler = async (event) => {
 
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: GOOGLE_REDIRECT_URI,
+    redirect_uri: GOOGLE_CALENDAR_REDIRECT_URI,
     response_type: 'code',
     scope: SCOPE,
     access_type: 'offline',

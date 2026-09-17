@@ -1,7 +1,6 @@
-const { corsHeaders } = require('../../lib/cors');
-const { store } = require('../../lib/store');
-
-const BACKEND_API_KEY = process.env.BACKEND_API_KEY;
+const { corsHeaders } = require('../lib/cors');
+const { isAuthenticated } = require('../lib/session');
+const { store } = require('../lib/store');
 
 async function getAccessToken(refreshToken) {
   const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = process.env;
@@ -29,14 +28,12 @@ exports.handler = async (event) => {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed. Please use GET.' }) };
   }
-  if (!BACKEND_API_KEY || !process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-    console.error('calendar-events.js: Missing BACKEND_API_KEY, GOOGLE_CLIENT_ID, or GOOGLE_CLIENT_SECRET.');
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    console.error('calendar-events.js: Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET.');
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'Calendar access is not configured.' }) };
   }
-
-  const providedKey = event.headers['x-sweetsuite-key'] || event.headers['X-SweetSuite-Key'] || '';
-  if (providedKey !== BACKEND_API_KEY) {
-    return { statusCode: 401, headers, body: JSON.stringify({ error: 'Missing or invalid API key.' }) };
+  if (!isAuthenticated(event)) {
+    return { statusCode: 401, headers, body: JSON.stringify({ error: 'Not authenticated.' }) };
   }
 
   const refreshToken = await store().get('google-refresh-token');

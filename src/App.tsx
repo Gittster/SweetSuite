@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import AuthGate from './components/AuthGate'
 import TabBar from './components/TabBar'
 import CalendarView from './components/CalendarView'
 import ChoresView from './components/ChoresView'
@@ -17,17 +18,19 @@ function App() {
   const { isIdle, wake } = useIdleTimer(IDLE_TIMEOUT_MS)
 
   return (
-    <div className="app-shell">
-      <main className="app-content">
-        {activeTab === 'calendar' && <CalendarView />}
-        {activeTab === 'chores' && <ChoresView />}
-        {activeTab === 'meals' && <MealsView />}
-        {activeTab === 'photos' && <PhotosView />}
-        {activeTab === 'setup' && <SetupView />}
-      </main>
-      <TabBar active={activeTab} onChange={setActiveTab} />
-      {isIdle && <PhotosScreensaver onWake={wake} />}
-    </div>
+    <AuthGate>
+      <div className="app-shell">
+        <main className="app-content">
+          {activeTab === 'calendar' && <CalendarView />}
+          {activeTab === 'chores' && <ChoresView />}
+          {activeTab === 'meals' && <MealsView />}
+          {activeTab === 'photos' && <PhotosView />}
+          {activeTab === 'setup' && <SetupView />}
+        </main>
+        <TabBar active={activeTab} onChange={setActiveTab} />
+        {isIdle && <PhotosScreensaver onWake={wake} />}
+      </div>
+    </AuthGate>
   )
 }
 

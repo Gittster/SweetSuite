@@ -1,0 +1,31 @@
+const { corsHeaders } = require('../lib/cors');
+const { isAuthenticated } = require('../lib/session');
+const { fetchErinsList } = require('../lib/erinsList');
+
+exports.handler = async (event) => {
+  const headers = corsHeaders();
+
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers, body: '' };
+  }
+  if (event.httpMethod !== 'GET') {
+    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed. Please use GET.' }) };
+  }
+  if (!isAuthenticated(event)) {
+    return { statusCode: 401, headers, body: JSON.stringify({ error: 'Not authenticated.' }) };
+  }
+
+  const recipeId = (event.queryStringParameters || {}).id;
+  if (!recipeId) {
+    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing required "id" query parameter.' }) };
+  }
+
+  try {
+    const data = await fetchErinsList(`/get-recipe?id=${encodeURIComponent(recipeId)}`);
+    return { statusCode: 200, headers, body: JSON.stringify(data) };
+  } catch (err) {
+    const statusCode = err.statusCode === 404 ? 404 : 502;
+    if (statusCode !== 404) console.error('recipe.js: Failed to fetch from ErinsList:', err);
+    return { statusCode, headers, body: JSON.stringify({ error: err.message || 'Failed to fetch recipe.' }) };
+  }
+};

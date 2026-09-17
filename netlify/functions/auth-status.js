@@ -1,6 +1,6 @@
-const { corsHeaders } = require('../../lib/cors');
-const { isAuthenticated } = require('../../lib/session');
-const { store } = require('../../lib/store');
+const { corsHeaders } = require('../lib/cors');
+const { getSession } = require('../lib/session');
+const { store } = require('../lib/store');
 
 exports.handler = async (event) => {
   const headers = corsHeaders();
@@ -12,7 +12,8 @@ exports.handler = async (event) => {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed. Please use GET.' }) };
   }
 
-  if (!isAuthenticated(event)) {
+  const session = getSession(event);
+  if (!session) {
     return { statusCode: 200, headers, body: JSON.stringify({ authenticated: false }) };
   }
 
@@ -21,8 +22,12 @@ exports.handler = async (event) => {
     const refreshToken = await store().get('google-refresh-token');
     googleConnected = !!refreshToken;
   } catch (err) {
-    console.error('setup-status.js: Failed to read blob store:', err);
+    console.error('auth-status.js: Failed to read blob store:', err);
   }
 
-  return { statusCode: 200, headers, body: JSON.stringify({ authenticated: true, googleConnected }) };
+  return {
+    statusCode: 200,
+    headers,
+    body: JSON.stringify({ authenticated: true, email: session.email, googleConnected }),
+  };
 };

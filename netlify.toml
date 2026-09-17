@@ -17,3 +17,12 @@
 
 [functions.auth-status]
   external_node_modules = ["@netlify/blobs"]
+
+[functions.calendar-list]
+  external_node_modules = ["@netlify/blobs"]
+
+[functions.calendar-select]
+  external_node_modules = ["@netlify/blobs"]
+
+[functions.app-events]
+  external_node_modules = ["@netlify/blobs"]

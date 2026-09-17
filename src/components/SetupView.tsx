@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react'
-import { disconnectGoogle, getAuthStatus, googleConnectUrl, logout } from '../api/backend'
+import {
+  disconnectGoogle,
+  getAuthStatus,
+  getCalendarList,
+  googleConnectUrl,
+  logout,
+  selectCalendar,
+  type GoogleCalendarOption,
+} from '../api/backend'
 import {
   checkFolderPermission,
   getStoredFolderHandle,
@@ -19,6 +27,9 @@ export default function SetupView() {
   const [folderName, setFolderName] = useState<string | null>(null)
   const [folderPermission, setFolderPermission] = useState<FolderPermissionState>('none')
 
+  const [calendars, setCalendars] = useState<GoogleCalendarOption[] | null>(null)
+  const [calendarBusy, setCalendarBusy] = useState(false)
+
   const refreshPhotoState = () => {
     getStoredFolderHandle().then((handle) => setFolderName(handle?.name ?? null))
     checkFolderPermission().then(setFolderPermission)
@@ -28,6 +39,11 @@ export default function SetupView() {
     getAuthStatus().then((res) => {
       setEmail(res.email ?? null)
       setGoogleConnected(!!res.googleConnected)
+      if (res.googleConnected) {
+        getCalendarList().then((r) => setCalendars(r.calendars)).catch(() => setCalendars(null))
+      } else {
+        setCalendars(null)
+      }
     })
   }
 
@@ -52,8 +68,20 @@ export default function SetupView() {
   const handleDisconnectGoogle = () => {
     setBusy(true)
     disconnectGoogle()
-      .then(() => setGoogleConnected(false))
+      .then(() => {
+        setGoogleConnected(false)
+        setCalendars(null)
+      })
       .finally(() => setBusy(false))
+  }
+
+  const handleSelectCalendar = (calendarId: string) => {
+    setCalendarBusy(true)
+    selectCalendar(calendarId)
+      .then(() => {
+        setCalendars((prev) => prev?.map((c) => ({ ...c, selected: c.id === calendarId })) ?? prev)
+      })
+      .finally(() => setCalendarBusy(false))
   }
 
   const handlePickFolder = async () => {
@@ -93,6 +121,21 @@ export default function SetupView() {
           {googleConnected ? (
             <>
               <p className="setup-status-line connected">Connected</p>
+              {calendars && calendars.length > 0 && (
+                <label className="setup-select-label">
+                  Syncing from
+                  <select
+                    className="setup-select"
+                    value={calendars.find((c) => c.selected)?.id ?? ''}
+                    disabled={calendarBusy}
+                    onChange={(e) => handleSelectCalendar(e.target.value)}
+                  >
+                    {calendars.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <button type="button" className="setup-secondary-btn" onClick={handleDisconnectGoogle} disabled={busy}>
                 Disconnect
               </button>

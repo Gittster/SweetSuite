@@ -16,9 +16,10 @@ import {
   subMonths,
   subWeeks,
 } from 'date-fns'
-import { getCalendarEvents } from '../api/backend'
+import { addAppEvent, deleteAppEvent, getAppEvents, getCalendarEvents, type NewAppEvent } from '../api/backend'
 import { events as mockEvents, people } from '../data/mockData'
 import type { CalendarEvent } from '../types'
+import AddEventModal from './AddEventModal'
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
 import './CalendarView.css'
 
@@ -36,7 +37,7 @@ function eventsOnDay(events: CalendarEvent[], day: Date): CalendarEvent[] {
     .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
 }
 
-function EventChip({ event }: { event: CalendarEvent }) {
+function EventChip({ event, onDelete }: { event: CalendarEvent; onDelete?: (id: string) => void }) {
   const person = event.personId ? personById.get(event.personId) : undefined
   return (
     <div className="event-chip" style={{ borderLeftColor: person?.color ?? '#999' }}>
@@ -50,11 +51,29 @@ function EventChip({ event }: { event: CalendarEvent }) {
           {person.name}
         </span>
       )}
+      {event.source === 'app' && onDelete && (
+        <button
+          type="button"
+          className="event-chip-delete"
+          aria-label="Delete event"
+          onClick={() => onDelete(event.id)}
+        >
+          ✕
+        </button>
+      )}
     </div>
   )
 }
 
-function DayDetail({ events, day }: { events: CalendarEvent[]; day: Date }) {
+function DayDetail({
+  events,
+  day,
+  onDelete,
+}: {
+  events: CalendarEvent[]
+  day: Date
+  onDelete: (id: string) => void
+}) {
   const dayEvents = eventsOnDay(events, day)
   return (
     <div className="day-detail">
@@ -64,7 +83,7 @@ function DayDetail({ events, day }: { events: CalendarEvent[]; day: Date }) {
       ) : (
         <div className="event-list">
           {dayEvents.map((e) => (
-            <EventChip key={e.id} event={e} />
+            <EventChip key={e.id} event={e} onDelete={onDelete} />
           ))}
         </div>
       )}
@@ -130,7 +149,15 @@ function MonthGrid({
   )
 }
 
-function WeekView({ events, selectedDate }: { events: CalendarEvent[]; selectedDate: Date }) {
+function WeekView({
+  events,
+  selectedDate,
+  onDelete,
+}: {
+  events: CalendarEvent[]
+  selectedDate: Date
+  onDelete: (id: string) => void
+}) {
   const days = useMemo(() => {
     const start = startOfWeek(selectedDate)
     return eachDayOfInterval({ start, end: endOfWeek(selectedDate) })
@@ -145,7 +172,7 @@ function WeekView({ events, selectedDate }: { events: CalendarEvent[]; selectedD
             <div className="week-view-day-header">{format(day, 'EEE d')}</div>
             <div className="event-list">
               {dayEvents.map((e) => (
-                <EventChip key={e.id} event={e} />
+                <EventChip key={e.id} event={e} onDelete={onDelete} />
               ))}
               {dayEvents.length === 0 && <p className="empty-state small">—</p>}
             </div>
@@ -156,7 +183,7 @@ function WeekView({ events, selectedDate }: { events: CalendarEvent[]; selectedD
   )
 }
 
-function ScheduleView({ events }: { events: CalendarEvent[] }) {
+function ScheduleView({ events, onDelete }: { events: CalendarEvent[]; onDelete: (id: string) => void }) {
   const upcoming = useMemo(() => {
     const today = startOfDay(new Date())
     const byDay = new Map<string, CalendarEvent[]>()
@@ -183,7 +210,7 @@ function ScheduleView({ events }: { events: CalendarEvent[] }) {
           <h3>{format(day, 'EEEE, MMMM d')}</h3>
           <div className="event-list">
             {dayEvents.map((e) => (
-              <EventChip key={e.id} event={e} />
+              <EventChip key={e.id} event={e} onDelete={onDelete} />
             ))}
           </div>
         </div>
@@ -195,21 +222,43 @@ function ScheduleView({ events }: { events: CalendarEvent[] }) {
 export default function CalendarView() {
   const [view, setView] = useState<ViewMode>('month')
   const [selectedDate, setSelectedDate] = useState(() => new Date())
-  const [events, setEvents] = useState<CalendarEvent[]>(mockEvents)
+  const [syncedEvents, setSyncedEvents] = useState<CalendarEvent[]>(mockEvents)
+  const [appEvents, setAppEvents] = useState<CalendarEvent[]>([])
   const [usingLiveData, setUsingLiveData] = useState(false)
+  const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
     const start = addDays(new Date(), -FETCH_RANGE_DAYS_BACK).toISOString()
     const end = addDays(new Date(), FETCH_RANGE_DAYS_FORWARD).toISOString()
     getCalendarEvents(start, end)
       .then(({ events: apiEvents }) => {
-        setEvents(apiEvents.map((e) => ({ ...e, location: e.location ?? undefined, personId: undefined })))
+        setSyncedEvents(apiEvents.map((e) => ({ ...e, location: e.location ?? undefined, personId: undefined })))
         setUsingLiveData(true)
       })
       .catch((err) => {
         console.error('Failed to fetch Google Calendar events, showing demo data:', err)
       })
+
+    getAppEvents()
+      .then(({ events }) => setAppEvents(events.map((e) => ({ ...e, personId: e.personId ?? undefined, location: e.location ?? undefined }))))
+      .catch((err) => console.error('Failed to fetch app-added events:', err))
   }, [])
+
+  const allEvents = useMemo(() => [...syncedEvents, ...appEvents], [syncedEvents, appEvents])
+
+  const handleAddEvent = (data: NewAppEvent) => {
+    addAppEvent(data)
+      .then(({ event }) => {
+        setAppEvents((prev) => [...prev, { ...event, personId: event.personId ?? undefined, location: event.location ?? undefined }])
+        setShowAddModal(false)
+      })
+      .catch((err) => console.error('Failed to add event:', err))
+  }
+
+  const handleDeleteEvent = (id: string) => {
+    setAppEvents((prev) => prev.filter((e) => e.id !== id))
+    deleteAppEvent(id).catch((err) => console.error('Failed to delete event:', err))
+  }
 
   const goToday = () => setSelectedDate(new Date())
   const goPrev = () => {
@@ -235,6 +284,7 @@ export default function CalendarView() {
             <ChevronRightIcon className="calendar-nav-icon" />
           </button>
           <h2>{format(selectedDate, view === 'month' ? 'MMMM yyyy' : 'MMM d, yyyy')}</h2>
+          <button type="button" className="calendar-add-btn" onClick={() => setShowAddModal(true)}>+ Add</button>
         </div>
         <div className="calendar-view-toggle">
           {(['day', 'week', 'month', 'schedule'] as ViewMode[]).map((v) => (
@@ -264,14 +314,22 @@ export default function CalendarView() {
       <div className="calendar-body">
         {view === 'month' && (
           <>
-            <MonthGrid events={events} selectedDate={selectedDate} onSelect={setSelectedDate} />
-            <DayDetail events={events} day={selectedDate} />
+            <MonthGrid events={allEvents} selectedDate={selectedDate} onSelect={setSelectedDate} />
+            <DayDetail events={allEvents} day={selectedDate} onDelete={handleDeleteEvent} />
           </>
         )}
-        {view === 'week' && <WeekView events={events} selectedDate={selectedDate} />}
-        {view === 'day' && <DayDetail events={events} day={selectedDate} />}
-        {view === 'schedule' && <ScheduleView events={events} />}
+        {view === 'week' && <WeekView events={allEvents} selectedDate={selectedDate} onDelete={handleDeleteEvent} />}
+        {view === 'day' && <DayDetail events={allEvents} day={selectedDate} onDelete={handleDeleteEvent} />}
+        {view === 'schedule' && <ScheduleView events={allEvents} onDelete={handleDeleteEvent} />}
       </div>
+
+      {showAddModal && (
+        <AddEventModal
+          defaultDate={selectedDate}
+          onClose={() => setShowAddModal(false)}
+          onSubmit={handleAddEvent}
+        />
+      )}
     </div>
   )
 }

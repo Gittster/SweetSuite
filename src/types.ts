@@ -11,6 +11,7 @@ export interface CalendarEvent {
   end: string // ISO datetime
   personId?: string
   location?: string
+  source?: 'google' | 'app'
 }
 
 export type Recurrence = 'none' | 'daily' | 'weekly' | 'monthly'

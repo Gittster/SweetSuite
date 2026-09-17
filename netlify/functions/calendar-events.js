@@ -1,23 +1,7 @@
 import { corsHeaders } from '../lib/cors.js';
 import { isAuthenticated } from '../lib/session.js';
 import { store } from '../lib/store.js';
-
-async function getAccessToken(refreshToken) {
-  const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = process.env;
-  const res = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
-      refresh_token: refreshToken,
-      grant_type: 'refresh_token',
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error_description || data.error || 'Failed to refresh Google access token.');
-  return data.access_token;
-}
+import { getGoogleAccessToken } from '../lib/google.js';
 
 export const handler = async (event) => {
   const headers = corsHeaders();
@@ -46,10 +30,12 @@ export const handler = async (event) => {
   const timeMax = params.end
     ? new Date(params.end).toISOString()
     : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
-  const calendarId = encodeURIComponent(process.env.GOOGLE_CALENDAR_ID || 'primary');
+
+  const selectedCalendarId = await store().get('selected-calendar-id');
+  const calendarId = encodeURIComponent(selectedCalendarId || process.env.GOOGLE_CALENDAR_ID || 'primary');
 
   try {
-    const accessToken = await getAccessToken(refreshToken);
+    const accessToken = await getGoogleAccessToken(refreshToken);
 
     const eventsUrl = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?` +
       new URLSearchParams({ timeMin, timeMax, singleEvents: 'true', orderBy: 'startTime' });
@@ -58,13 +44,14 @@ export const handler = async (event) => {
     if (!eventsRes.ok) throw new Error(eventsData.error?.message || 'Failed to fetch calendar events.');
 
     // Google Calendar has no concept of SweetSuite's per-person Profiles, so synced
-    // events don't carry a personId — only mock/local data does.
+    // events don't carry a personId — only app-native events do (see app-events.js).
     const events = (eventsData.items || []).map((item) => ({
       id: item.id,
       title: item.summary || '(No title)',
       start: item.start?.dateTime || item.start?.date,
       end: item.end?.dateTime || item.end?.date,
       location: item.location || null,
+      source: 'google',
     }));
 
     return { statusCode: 200, headers, body: JSON.stringify({ events }) };

@@ -1,0 +1,82 @@
+.add-event-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 150;
+  padding: 16px;
+}
+
+.add-event-modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.add-event-modal h3 {
+  font-size: 18px;
+}
+
+.add-event-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.add-event-field input,
+.add-event-field select {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.add-event-time-row {
+  display: flex;
+  gap: 10px;
+}
+
+.add-event-time-row .add-event-field {
+  flex: 1;
+}
+
+.add-event-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.add-event-cancel,
+.add-event-submit {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.add-event-cancel {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.add-event-submit {
+  background: var(--accent);
+  color: white;
+}

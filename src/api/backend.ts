@@ -4,6 +4,24 @@ export interface CalendarApiEvent {
   start: string
   end: string
   location: string | null
+  source: 'google'
+}
+
+export interface AppEvent {
+  id: string
+  title: string
+  start: string
+  end: string
+  personId: string | null
+  location: string | null
+  source: 'app'
+}
+
+export interface GoogleCalendarOption {
+  id: string
+  name: string
+  color: string | null
+  selected: boolean
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -44,4 +62,40 @@ export function getCalendarEvents(start?: string, end?: string): Promise<{ event
   if (end) params.set('end', end)
   const query = params.toString()
   return request(`/calendar-events${query ? `?${query}` : ''}`)
+}
+
+export function getCalendarList(): Promise<{ calendars: GoogleCalendarOption[] }> {
+  return request('/calendar-list')
+}
+
+export function selectCalendar(calendarId: string): Promise<{ calendarId: string }> {
+  return request('/calendar-select', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ calendarId }),
+  })
+}
+
+export function getAppEvents(): Promise<{ events: AppEvent[] }> {
+  return request('/app-events')
+}
+
+export interface NewAppEvent {
+  title: string
+  start: string
+  end: string
+  personId?: string | null
+  location?: string | null
+}
+
+export function addAppEvent(newEvent: NewAppEvent): Promise<{ event: AppEvent }> {
+  return request('/app-events', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newEvent),
+  })
+}
+
+export function deleteAppEvent(id: string): Promise<{ deleted: string }> {
+  return request(`/app-events?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
 }

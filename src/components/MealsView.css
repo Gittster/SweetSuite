@@ -41,6 +41,18 @@
   box-shadow: var(--shadow);
 }
 
+.meals-recipe-search {
+  display: block;
+  margin-top: 12px;
+  width: 100%;
+  max-width: 320px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font: inherit;
+  background: var(--bg);
+}
+
 .meals-body {
   flex: 1;
   overflow-y: auto;
@@ -120,13 +132,24 @@
 }
 
 .meals-recipe-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding: 16px;
   border-radius: var(--radius);
   border: none;
   background: var(--surface);
   box-shadow: var(--shadow);
-  font-weight: 600;
-  font-size: 15px;
   cursor: pointer;
   text-align: left;
+}
+
+.meals-recipe-tile-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.meals-recipe-tile-tags {
+  font-size: 12px;
+  color: var(--text-muted);
 }

@@ -34,6 +34,14 @@ export interface Recipe {
   rating: number
 }
 
+export interface RecipeSummary {
+  id: string
+  name: string | null
+  imageUrl: string | null
+  tags: string[]
+  rating: number
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/.netlify/functions${path}`, { credentials: 'include', ...init })
   if (!res.ok) {
@@ -77,4 +85,8 @@ export function deleteShoppingItem(id: string): Promise<{ deleted: string }> {
 
 export function getRecipe(id: string): Promise<{ recipe: Recipe }> {
   return request(`/recipe?id=${encodeURIComponent(id)}`)
+}
+
+export function getRecipes(): Promise<{ recipes: RecipeSummary[] }> {
+  return request('/recipes')
 }

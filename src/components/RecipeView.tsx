@@ -11,6 +11,13 @@ function formatIngredient(ing: { name: string; quantity?: string | number; unit?
   return [ing.quantity, ing.unit, ing.name].filter(Boolean).join(' ')
 }
 
+// ErinsList stores instructions as either a newline-joined string or an
+// array of steps depending on how the recipe was created — normalize both.
+function toSteps(instructions: string | string[] | null | undefined): string[] {
+  const lines = Array.isArray(instructions) ? instructions : (instructions || '').split('\n')
+  return lines.map((line) => String(line).trim()).filter(Boolean)
+}
+
 export default function RecipeView({ recipeId, onClose }: RecipeViewProps) {
   const [recipe, setRecipe] = useState<Recipe | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -84,13 +91,9 @@ export default function RecipeView({ recipeId, onClose }: RecipeViewProps) {
               <section>
                 <h3>Instructions</h3>
                 <ol className="recipe-view-instructions">
-                  {recipe.instructions
-                    .split('\n')
-                    .map((line) => line.trim())
-                    .filter(Boolean)
-                    .map((line, i) => (
-                      <li key={i}>{line}</li>
-                    ))}
+                  {toSteps(recipe.instructions).map((line, i) => (
+                    <li key={i}>{line}</li>
+                  ))}
                 </ol>
               </section>
             </div>

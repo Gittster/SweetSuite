@@ -29,7 +29,7 @@ export interface Recipe {
   name: string | null
   imageUrl: string | null
   ingredients: RecipeIngredient[]
-  instructions: string
+  instructions: string | string[]
   tags: string[]
   rating: number
 }

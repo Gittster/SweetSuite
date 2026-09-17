@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { checkFolderPermission, listPhotoFiles } from '../photos/localPhotos'
+import LoadingOverlay from './LoadingOverlay'
 import './PhotosView.css'
 
 const PREVIEW_LIMIT = 12
@@ -30,7 +31,7 @@ export default function PhotosView() {
 
   return (
     <div className="photos-view">
-      {status === 'loading' && <p className="empty-state">Loading…</p>}
+      {status === 'loading' && <LoadingOverlay label="Loading photos…" />}
       {status === 'none' && (
         <div className="photos-empty">
           <p>No photo folder chosen yet.</p>

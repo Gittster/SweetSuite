@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { getMealPlan, getRecipes, type PlannedMeal, type RecipeSummary } from '../api/erinsList'
+import LoadingOverlay from './LoadingOverlay'
 import RecipeView from './RecipeView'
 import './MealsView.css'
 
@@ -97,7 +98,7 @@ export default function MealsView() {
       <div className="meals-body">
         {subTab === 'planning' && (
           <>
-            {planningLoading && <p className="empty-state">Loading…</p>}
+            {planningLoading && <LoadingOverlay label="Loading meals…" />}
             {planningError && (
               <div className="meals-error">
                 <p>Couldn't reach ErinsList: {planningError}</p>
@@ -134,14 +135,14 @@ export default function MealsView() {
 
         {subTab === 'recipes' && (
           <>
-            {recipesLoading && <p className="empty-state">Loading…</p>}
+            {(recipesLoading || recipes === null) && !recipesError && <LoadingOverlay label="Loading recipes…" />}
             {recipesError && (
               <div className="meals-error">
                 <p>Couldn't reach ErinsList: {recipesError}</p>
                 <button type="button" onClick={loadRecipes}>Try again</button>
               </div>
             )}
-            {!recipesLoading && !recipesError && (
+            {recipes !== null && !recipesError && (
               <section className="meals-section">
                 {filteredRecipes.length === 0 && (
                   <p className="empty-state">{search ? 'No recipes match your search.' : 'No recipes yet.'}</p>

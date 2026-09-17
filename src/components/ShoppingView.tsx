@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { addShoppingItem, deleteShoppingItem, getShoppingList, toggleShoppingItem, type ShoppingItem } from '../api/erinsList'
+import LoadingOverlay from './LoadingOverlay'
 import './ShoppingView.css'
 
 export default function ShoppingView() {
@@ -84,7 +85,7 @@ export default function ShoppingView() {
       </header>
 
       <div className="shopping-body">
-        {loading && <p className="empty-state">Loading…</p>}
+        {loading && <LoadingOverlay label="Loading shopping list…" />}
         {error && (
           <div className="shopping-error">
             <p>Couldn't reach ErinsList: {error}</p>

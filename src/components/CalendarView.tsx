@@ -21,6 +21,7 @@ import { events as mockEvents, people } from '../data/mockData'
 import type { CalendarEvent } from '../types'
 import AddEventModal from './AddEventModal'
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
+import LoadingOverlay from './LoadingOverlay'
 import './CalendarView.css'
 
 type ViewMode = 'day' | 'week' | 'month' | 'schedule'
@@ -222,26 +223,33 @@ function ScheduleView({ events, onDelete }: { events: CalendarEvent[]; onDelete:
 export default function CalendarView() {
   const [view, setView] = useState<ViewMode>('month')
   const [selectedDate, setSelectedDate] = useState(() => new Date())
-  const [syncedEvents, setSyncedEvents] = useState<CalendarEvent[]>(mockEvents)
+  const [syncedEvents, setSyncedEvents] = useState<CalendarEvent[]>([])
   const [appEvents, setAppEvents] = useState<CalendarEvent[]>([])
   const [usingLiveData, setUsingLiveData] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const start = addDays(new Date(), -FETCH_RANGE_DAYS_BACK).toISOString()
     const end = addDays(new Date(), FETCH_RANGE_DAYS_FORWARD).toISOString()
-    getCalendarEvents(start, end)
-      .then(({ events: apiEvents }) => {
-        setSyncedEvents(apiEvents.map((e) => ({ ...e, location: e.location ?? undefined, personId: undefined })))
-        setUsingLiveData(true)
-      })
-      .catch((err) => {
-        console.error('Failed to fetch Google Calendar events, showing demo data:', err)
-      })
 
-    getAppEvents()
-      .then(({ events }) => setAppEvents(events.map((e) => ({ ...e, personId: e.personId ?? undefined, location: e.location ?? undefined }))))
-      .catch((err) => console.error('Failed to fetch app-added events:', err))
+    Promise.allSettled([getCalendarEvents(start, end), getAppEvents()]).then(([calResult, appResult]) => {
+      if (calResult.status === 'fulfilled') {
+        setSyncedEvents(calResult.value.events.map((e) => ({ ...e, location: e.location ?? undefined, personId: undefined })))
+        setUsingLiveData(true)
+      } else {
+        console.error('Failed to fetch Google Calendar events, showing demo data:', calResult.reason)
+        setSyncedEvents(mockEvents)
+      }
+
+      if (appResult.status === 'fulfilled') {
+        setAppEvents(appResult.value.events.map((e) => ({ ...e, personId: e.personId ?? undefined, location: e.location ?? undefined })))
+      } else {
+        console.error('Failed to fetch app-added events:', appResult.reason)
+      }
+
+      setLoading(false)
+    })
   }, [])
 
   const allEvents = useMemo(() => [...syncedEvents, ...appEvents], [syncedEvents, appEvents])
@@ -298,7 +306,7 @@ export default function CalendarView() {
             </button>
           ))}
         </div>
-        {!usingLiveData && (
+        {!loading && !usingLiveData && (
           <p className="calendar-demo-note">Showing demo data — connect Google Calendar in Setup.</p>
         )}
         <div className="calendar-legend">
@@ -312,15 +320,20 @@ export default function CalendarView() {
       </header>
 
       <div className="calendar-body">
-        {view === 'month' && (
+        {loading && <LoadingOverlay label="Loading calendar…" />}
+        {!loading && (
           <>
-            <MonthGrid events={allEvents} selectedDate={selectedDate} onSelect={setSelectedDate} />
-            <DayDetail events={allEvents} day={selectedDate} onDelete={handleDeleteEvent} />
+            {view === 'month' && (
+              <>
+                <MonthGrid events={allEvents} selectedDate={selectedDate} onSelect={setSelectedDate} />
+                <DayDetail events={allEvents} day={selectedDate} onDelete={handleDeleteEvent} />
+              </>
+            )}
+            {view === 'week' && <WeekView events={allEvents} selectedDate={selectedDate} onDelete={handleDeleteEvent} />}
+            {view === 'day' && <DayDetail events={allEvents} day={selectedDate} onDelete={handleDeleteEvent} />}
+            {view === 'schedule' && <ScheduleView events={allEvents} onDelete={handleDeleteEvent} />}
           </>
         )}
-        {view === 'week' && <WeekView events={allEvents} selectedDate={selectedDate} onDelete={handleDeleteEvent} />}
-        {view === 'day' && <DayDetail events={allEvents} day={selectedDate} onDelete={handleDeleteEvent} />}
-        {view === 'schedule' && <ScheduleView events={allEvents} onDelete={handleDeleteEvent} />}
       </div>
 
       {showAddModal && (

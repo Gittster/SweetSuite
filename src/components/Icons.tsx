@@ -93,3 +93,21 @@ export function ImageIcon(props: IconProps) {
     </svg>
   )
 }
+
+export function ChatIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 5.5h16a1 1 0 0 1 1 1V16a1 1 0 0 1-1 1H9l-4.5 4V17H4a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1Z" />
+      <line x1="7" y1="9.5" x2="17" y2="9.5" />
+      <line x1="7" y1="13" x2="13.5" y2="13" />
+    </svg>
+  )
+}
+
+export function PaperclipIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M20 11.5 12.4 19a4 4 0 0 1-5.6-5.6L14.5 5.7a2.7 2.7 0 0 1 3.8 3.8l-7.6 7.6a1.3 1.3 0 0 1-1.9-1.9l6.9-6.9" />
+    </svg>
+  )
+}

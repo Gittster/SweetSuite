@@ -35,3 +35,12 @@
 
 [functions.recipe]
   external_node_modules = ["@netlify/blobs"]
+
+[functions.feedback-tickets]
+  external_node_modules = ["@netlify/blobs"]
+
+[functions.feedback-reply]
+  external_node_modules = ["@netlify/blobs"]
+
+[functions.feedback-attachment]
+  external_node_modules = ["@netlify/blobs"]

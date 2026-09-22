@@ -4,6 +4,7 @@ import AuthGate from './components/AuthGate'
 import TabBar from './components/TabBar'
 import CalendarView from './components/CalendarView'
 import ChoresView from './components/ChoresView'
+import FeedbackWidget from './components/FeedbackWidget'
 import MealsView from './components/MealsView'
 import ShoppingView from './components/ShoppingView'
 import PhotosView from './components/PhotosView'
@@ -39,6 +40,7 @@ function App() {
           ))}
         </main>
         <TabBar active={activeTab} onChange={setActiveTab} />
+        <FeedbackWidget />
         {isIdle && <PhotosScreensaver onWake={wake} />}
       </div>
     </AuthGate>

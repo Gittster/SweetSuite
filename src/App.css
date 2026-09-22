@@ -8,7 +8,11 @@
   order: 1;
   flex: 1;
   min-height: 0;
+  /* Setting only overflow-y (per spec) turns overflow-x into "auto" too,
+     not "visible" — so any future child that overflows horizontally would
+     get a real scrollbar here instead of being clipped. Pin it shut. */
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .app-shell > .tab-bar {

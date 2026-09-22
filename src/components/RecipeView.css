@@ -4,6 +4,7 @@
   background: var(--bg);
   z-index: 200;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .recipe-view-close {

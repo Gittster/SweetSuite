@@ -11,7 +11,7 @@
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
 
-  color-scheme: light dark;
+  color-scheme: light;
   color: var(--text);
   background: var(--bg);
   font: 17px/1.45 var(--sans);
@@ -22,17 +22,19 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #ece9e4;
-    --text-muted: #9d99a3;
-    --bg: #17161a;
-    --surface: #201f24;
-    --border: #33323a;
-    --accent: #e2825f;
-    --accent-soft: rgba(226, 130, 95, 0.16);
-    --shadow: rgba(0, 0, 0, 0.4) 0 6px 16px -6px;
-  }
+/* Light is the standard/default look — dark is an explicit opt-in from
+   Setup > Appearance (see theme.ts), not something that follows the
+   device's OS setting. */
+:root[data-theme='dark'] {
+  --text: #ece9e4;
+  --text-muted: #9d99a3;
+  --bg: #17161a;
+  --surface: #201f24;
+  --border: #33323a;
+  --accent: #e2825f;
+  --accent-soft: rgba(226, 130, 95, 0.16);
+  --shadow: rgba(0, 0, 0, 0.4) 0 6px 16px -6px;
+  color-scheme: dark;
 }
 
 * {

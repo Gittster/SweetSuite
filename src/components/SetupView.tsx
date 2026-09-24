@@ -16,10 +16,12 @@ import {
   requestFolderPermission,
   type FolderPermissionState,
 } from '../photos/localPhotos'
+import { getStoredTheme, setTheme, type Theme } from '../theme'
 import LoadingOverlay from './LoadingOverlay'
 import './SetupView.css'
 
 export default function SetupView() {
+  const [theme, setThemeState] = useState<Theme>(getStoredTheme)
   const [email, setEmail] = useState<string | null>(null)
   const [googleConnected, setGoogleConnected] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -104,6 +106,11 @@ export default function SetupView() {
     setFolderPermission(granted ? 'granted' : 'needs-permission')
   }
 
+  const handleSetTheme = (next: Theme) => {
+    setThemeState(next)
+    setTheme(next)
+  }
+
   return (
     <div className="setup-view">
       <header className="setup-header">
@@ -123,6 +130,26 @@ export default function SetupView() {
             {oauthNotice === 'error' && (
               <div className="setup-banner error">Couldn't connect Google Calendar. Try again below.</div>
             )}
+
+            <section className="setup-card">
+              <h3>Appearance</h3>
+              <div className="setup-theme-toggle">
+                <button
+                  type="button"
+                  className={theme === 'light' ? 'active' : ''}
+                  onClick={() => handleSetTheme('light')}
+                >
+                  Light
+                </button>
+                <button
+                  type="button"
+                  className={theme === 'dark' ? 'active' : ''}
+                  onClick={() => handleSetTheme('dark')}
+                >
+                  Dark
+                </button>
+              </div>
+            </section>
 
             <section className="setup-card">
               <h3>Google Calendar</h3>

@@ -164,6 +164,31 @@
   letter-spacing: normal;
 }
 
+.setup-theme-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg);
+  border-radius: 999px;
+}
+
+.setup-theme-toggle button {
+  border: none;
+  background: none;
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.setup-theme-toggle button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
 .setup-lock-btn {
   padding: 12px 16px;
   border-radius: 10px;

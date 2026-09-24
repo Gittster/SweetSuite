@@ -17,6 +17,24 @@ export interface CalendarEvent {
 
 export type Recurrence = 'none' | 'daily' | 'weekly' | 'monthly'
 
+export type ChoreIconKey =
+  | 'dog'
+  | 'trash'
+  | 'dishes'
+  | 'bed'
+  | 'broom'
+  | 'tooth'
+  | 'laundry'
+  | 'plant'
+  | 'book'
+  | 'backpack'
+  | 'shoe'
+  | 'toyBlocks'
+  | 'tableSetting'
+  | 'bath'
+  | 'document'
+  | 'star'
+
 export interface Task {
   id: string
   title: string
@@ -24,6 +42,7 @@ export interface Task {
   recurrence: Recurrence
   done: boolean
   dueDate?: string // ISO date
+  icon?: ChoreIconKey
 }
 
 export type TabId = 'calendar' | 'chores' | 'meals' | 'shopping' | 'photos' | 'setup'

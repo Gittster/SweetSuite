@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { people, tasks as initialTasks } from '../data/mockData'
+import { ChoreIcon } from './ChoreIcons'
 import { CheckIcon } from './Icons'
 import type { Recurrence, Task } from '../types'
 import './ChoresView.css'
@@ -88,10 +89,14 @@ export default function ChoresView() {
               className={`chore-item ${task.done ? 'done' : ''}`}
               onClick={() => toggleDone(task.id)}
             >
-              <span className="chore-checkbox" style={{ borderColor: person?.color ?? '#999' }}>
+              <span
+                className="chore-icon-badge"
+                style={{ background: person ? `${person.color}22` : 'var(--bg)', color: person?.color ?? 'var(--text-muted)' }}
+              >
+                <ChoreIcon icon={task.icon} className="chore-icon" />
                 {task.done && (
-                  <span className="chore-checkmark" style={{ background: person?.color }}>
-                    <CheckIcon className="chore-checkmark-icon" />
+                  <span className="chore-done-badge" style={{ background: person?.color ?? '#999' }}>
+                    <CheckIcon className="chore-done-badge-icon" />
                   </span>
                 )}
               </span>

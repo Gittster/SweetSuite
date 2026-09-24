@@ -76,12 +76,12 @@ export const events: CalendarEvent[] = [
 ]
 
 export const tasks: Task[] = [
-  { id: 'task-1', title: 'Feed the dog', personId: 'kiddo', recurrence: 'daily', done: false },
-  { id: 'task-2', title: 'Take out trash', personId: 'dad', recurrence: 'weekly', done: false },
-  { id: 'task-3', title: 'Unload dishwasher', personId: 'mom', recurrence: 'daily', done: true },
-  { id: 'task-4', title: 'Water the plants', personId: 'kiddo', recurrence: 'weekly', done: false },
-  { id: 'task-5', title: 'Vacuum living room', personId: 'family', recurrence: 'weekly', done: false },
-  { id: 'task-6', title: 'Pay utility bill', personId: 'dad', recurrence: 'monthly', done: false },
-  { id: 'task-7', title: 'Pack school lunches', personId: 'mom', recurrence: 'daily', done: false },
-  { id: 'task-8', title: 'Clean room', personId: 'kiddo', recurrence: 'weekly', done: false },
+  { id: 'task-1', title: 'Feed the dog', personId: 'kiddo', recurrence: 'daily', done: false, icon: 'dog' },
+  { id: 'task-2', title: 'Take out trash', personId: 'dad', recurrence: 'weekly', done: false, icon: 'trash' },
+  { id: 'task-3', title: 'Unload dishwasher', personId: 'mom', recurrence: 'daily', done: true, icon: 'dishes' },
+  { id: 'task-4', title: 'Water the plants', personId: 'kiddo', recurrence: 'weekly', done: false, icon: 'plant' },
+  { id: 'task-5', title: 'Vacuum living room', personId: 'family', recurrence: 'weekly', done: false, icon: 'broom' },
+  { id: 'task-6', title: 'Pay utility bill', personId: 'dad', recurrence: 'monthly', done: false, icon: 'document' },
+  { id: 'task-7', title: 'Pack school lunches', personId: 'mom', recurrence: 'daily', done: false, icon: 'backpack' },
+  { id: 'task-8', title: 'Clean room', personId: 'kiddo', recurrence: 'weekly', done: false, icon: 'toyBlocks' },
 ]

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { format } from 'date-fns'
-import { people } from '../data/mockData'
+import { usePeople } from '../context/PeopleContext'
 import type { NewAppEvent } from '../api/backend'
 import './AddEventModal.css'
 
@@ -11,6 +11,7 @@ interface AddEventModalProps {
 }
 
 export default function AddEventModal({ defaultDate, onClose, onSubmit }: AddEventModalProps) {
+  const { people } = usePeople()
   const [title, setTitle] = useState('')
   const [date, setDate] = useState(() => format(defaultDate, 'yyyy-MM-dd'))
   const [startTime, setStartTime] = useState('09:00')

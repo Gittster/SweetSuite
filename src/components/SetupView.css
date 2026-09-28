@@ -189,6 +189,92 @@
   box-shadow: var(--shadow);
 }
 
+.setup-people-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.setup-person-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.setup-person-swatch {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--border);
+  overflow: hidden;
+  position: relative;
+}
+
+.setup-person-swatch input[type='color'] {
+  position: absolute;
+  inset: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.setup-person-name {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 0;
+}
+
+.setup-person-remove {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.setup-person-remove:disabled,
+.setup-person-name:disabled,
+.setup-person-swatch input:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.setup-person-add {
+  display: flex;
+  gap: 8px;
+}
+
+.setup-person-add-input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  min-width: 0;
+}
+
+.setup-person-add .setup-secondary-btn {
+  margin-right: 0;
+}
+
 .setup-lock-btn {
   padding: 12px 16px;
   border-radius: 10px;

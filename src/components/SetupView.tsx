@@ -8,6 +8,7 @@ import {
   selectCalendar,
   type GoogleCalendarOption,
 } from '../api/backend'
+import { usePeople } from '../context/PeopleContext'
 import {
   checkFolderPermission,
   getStoredFolderHandle,
@@ -20,7 +21,17 @@ import { getStoredTheme, setTheme, type Theme } from '../theme'
 import LoadingOverlay from './LoadingOverlay'
 import './SetupView.css'
 
+const NEW_PERSON_COLORS = ['#c34a72', '#3a6d8c', '#d99a2b', '#4c7a5e', '#7b5ea7', '#b5502f']
+
+function nextDefaultColor(usedCount: number): string {
+  return NEW_PERSON_COLORS[usedCount % NEW_PERSON_COLORS.length]
+}
+
 export default function SetupView() {
+  const { people, loading: peopleLoading, addPerson, updatePerson, removePerson } = usePeople()
+  const [newPersonName, setNewPersonName] = useState('')
+  const [personBusyId, setPersonBusyId] = useState<string | null>(null)
+
   const [theme, setThemeState] = useState<Theme>(getStoredTheme)
   const [email, setEmail] = useState<string | null>(null)
   const [googleConnected, setGoogleConnected] = useState(false)
@@ -111,6 +122,37 @@ export default function SetupView() {
     setTheme(next)
   }
 
+  const handleAddPerson = () => {
+    const name = newPersonName.trim()
+    if (!name) return
+    addPerson({ name, color: nextDefaultColor(people.length) })
+      .then(() => setNewPersonName(''))
+      .catch((err) => console.error('Failed to add family member:', err))
+  }
+
+  const handleRenamePerson = (id: string, name: string) => {
+    if (!name.trim()) return
+    setPersonBusyId(id)
+    updatePerson(id, { name: name.trim() })
+      .catch((err) => console.error('Failed to rename family member:', err))
+      .finally(() => setPersonBusyId(null))
+  }
+
+  const handleRecolorPerson = (id: string, color: string) => {
+    setPersonBusyId(id)
+    updatePerson(id, { color })
+      .catch((err) => console.error('Failed to recolor family member:', err))
+      .finally(() => setPersonBusyId(null))
+  }
+
+  const handleRemovePerson = (id: string, name: string) => {
+    if (!window.confirm(`Remove ${name}? Existing chores or events assigned to them will show as unassigned.`)) return
+    setPersonBusyId(id)
+    removePerson(id)
+      .catch((err) => console.error('Failed to remove family member:', err))
+      .finally(() => setPersonBusyId(null))
+  }
+
   return (
     <div className="setup-view">
       <header className="setup-header">
@@ -149,6 +191,59 @@ export default function SetupView() {
                   Dark
                 </button>
               </div>
+            </section>
+
+            <section className="setup-card">
+              <h3>Family Members</h3>
+              {peopleLoading ? (
+                <p className="setup-status-line">Loading…</p>
+              ) : (
+                <>
+                  <div className="setup-people-list">
+                    {people.map((p) => (
+                      <div key={p.id} className="setup-person-row">
+                        <label className="setup-person-swatch" style={{ background: p.color }}>
+                          <input
+                            type="color"
+                            value={p.color}
+                            disabled={personBusyId === p.id}
+                            onChange={(e) => handleRecolorPerson(p.id, e.target.value)}
+                          />
+                        </label>
+                        <input
+                          className="setup-person-name"
+                          defaultValue={p.name}
+                          disabled={personBusyId === p.id}
+                          onBlur={(e) => {
+                            if (e.target.value.trim() !== p.name) handleRenamePerson(p.id, e.target.value)
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="setup-person-remove"
+                          aria-label={`Remove ${p.name}`}
+                          disabled={personBusyId === p.id}
+                          onClick={() => handleRemovePerson(p.id, p.name)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="setup-person-add">
+                    <input
+                      className="setup-person-add-input"
+                      placeholder="Add family member…"
+                      value={newPersonName}
+                      onChange={(e) => setNewPersonName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleAddPerson()
+                      }}
+                    />
+                    <button type="button" className="setup-secondary-btn" onClick={handleAddPerson}>Add</button>
+                  </div>
+                </>
+              )}
             </section>
 
             <section className="setup-card">

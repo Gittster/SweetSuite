@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { people, tasks as initialTasks } from '../data/mockData'
+import { tasks as initialTasks } from '../data/mockData'
+import { usePeople } from '../context/PeopleContext'
 import { ChoreIcon } from './ChoreIcons'
 import { CheckIcon } from './Icons'
 import type { Recurrence, Task } from '../types'
@@ -32,6 +33,7 @@ function saveDoneOverrides(overrides: Record<string, boolean>) {
 }
 
 export default function ChoresView() {
+  const { people } = usePeople()
   const [filter, setFilter] = useState<string>('all')
   const [doneOverrides, setDoneOverrides] = useState<Record<string, boolean>>(loadDoneOverrides)
 

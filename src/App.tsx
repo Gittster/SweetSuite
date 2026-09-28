@@ -10,6 +10,7 @@ import ShoppingView from './components/ShoppingView'
 import PhotosView from './components/PhotosView'
 import PhotosScreensaver from './components/PhotosScreensaver'
 import SetupView from './components/SetupView'
+import { PeopleProvider } from './context/PeopleContext'
 import { useIdleTimer } from './hooks/useIdleTimer'
 import type { TabId } from './types'
 
@@ -29,20 +30,22 @@ function App() {
 
   return (
     <AuthGate>
-      <div className="app-shell">
-        <main className="app-content">
-          {/* Every tab stays mounted once visited, so switching back to it is instant
-              instead of re-fetching from the network each time. */}
-          {TABS.map(({ id, render }) => (
-            <div key={id} style={{ display: activeTab === id ? 'contents' : 'none' }}>
-              {render()}
-            </div>
-          ))}
-        </main>
-        <TabBar active={activeTab} onChange={setActiveTab} />
-        <FeedbackWidget />
-        {isIdle && <PhotosScreensaver onWake={wake} />}
-      </div>
+      <PeopleProvider>
+        <div className="app-shell">
+          <main className="app-content">
+            {/* Every tab stays mounted once visited, so switching back to it is instant
+                instead of re-fetching from the network each time. */}
+            {TABS.map(({ id, render }) => (
+              <div key={id} style={{ display: activeTab === id ? 'contents' : 'none' }}>
+                {render()}
+              </div>
+            ))}
+          </main>
+          <TabBar active={activeTab} onChange={setActiveTab} />
+          <FeedbackWidget />
+          {isIdle && <PhotosScreensaver onWake={wake} />}
+        </div>
+      </PeopleProvider>
     </AuthGate>
   )
 }

@@ -99,3 +99,33 @@ export function addAppEvent(newEvent: NewAppEvent): Promise<{ event: AppEvent }>
 export function deleteAppEvent(id: string): Promise<{ deleted: string }> {
   return request(`/app-events?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
+
+export interface FamilyMember {
+  id: string
+  name: string
+  color: string
+}
+
+export function getFamilyMembers(): Promise<{ members: FamilyMember[] }> {
+  return request('/family-members')
+}
+
+export function addFamilyMember(data: { name: string; color: string }): Promise<{ member: FamilyMember }> {
+  return request('/family-members', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+}
+
+export function updateFamilyMember(id: string, data: { name?: string; color?: string }): Promise<{ member: FamilyMember }> {
+  return request(`/family-members?id=${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+}
+
+export function deleteFamilyMember(id: string): Promise<{ deleted: string }> {
+  return request(`/family-members?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+}

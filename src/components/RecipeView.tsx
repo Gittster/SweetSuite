@@ -13,9 +13,13 @@ function formatIngredient(ing: { name: string; quantity?: string | number; unit?
 
 // ErinsList stores instructions as either a newline-joined string or an
 // array of steps depending on how the recipe was created — normalize both.
+// Steps often already come with their own "1. " prefix baked into the text
+// (e.g. AI-generated recipes) — strip it since we render our own <ol> numbers.
 function toSteps(instructions: string | string[] | null | undefined): string[] {
   const lines = Array.isArray(instructions) ? instructions : (instructions || '').split('\n')
-  return lines.map((line) => String(line).trim()).filter(Boolean)
+  return lines
+    .map((line) => String(line).trim().replace(/^\d+[.)]\s*/, ''))
+    .filter(Boolean)
 }
 
 export default function RecipeView({ recipeId, onClose }: RecipeViewProps) {

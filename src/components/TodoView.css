@@ -1,0 +1,341 @@
+.todo-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.todo-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.todo-header h2 {
+  font-size: 22px;
+}
+
+.todo-subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.todo-body {
+  position: relative;
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+.todo-sections {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  height: 100%;
+}
+
+.todo-section {
+  flex: 0 0 280px;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  padding: 12px;
+  max-height: 100%;
+}
+
+.todo-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.todo-section-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  font-size: 15px;
+  border: none;
+  background: none;
+  color: var(--text);
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.todo-section-name:focus {
+  background: var(--bg);
+  outline: none;
+}
+
+.todo-section-delete {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.todo-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  min-height: 40px;
+}
+
+.todo-card {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 8px 10px;
+  touch-action: pan-y;
+}
+
+.todo-card.dragging {
+  opacity: 0.4;
+}
+
+.todo-card.done {
+  opacity: 0.6;
+}
+
+.todo-card-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.todo-drag-handle {
+  flex-shrink: 0;
+  width: 22px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.todo-check {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+}
+
+.todo-card.done .todo-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.todo-check.small {
+  width: 20px;
+  height: 20px;
+}
+
+.todo-check-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.todo-check.small .todo-check-icon {
+  width: 11px;
+  height: 11px;
+}
+
+.todo-title-btn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.todo-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.todo-card.done .todo-title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.todo-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.todo-delete {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.todo-detail {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.todo-detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.todo-detail-field input,
+.todo-detail-field textarea {
+  font: inherit;
+  font-weight: 400;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  resize: vertical;
+}
+
+.todo-subtasks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.todo-subtask-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.todo-subtask-title {
+  flex: 1;
+  font-size: 13px;
+}
+
+.todo-subtask-title.done {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.todo-subtask-delete {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.todo-subtask-add,
+.todo-add-item {
+  display: flex;
+  gap: 6px;
+}
+
+.todo-subtask-add input,
+.todo-add-item input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.todo-subtask-add button,
+.todo-add-item button {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.todo-add-section {
+  justify-content: center;
+  gap: 8px;
+}
+
+.todo-add-section input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.todo-add-section button {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+body.todo-dragging-active {
+  cursor: grabbing;
+  user-select: none;
+}
+
+/* Below ~900px (portrait phones and tablets), a horizontal row of fixed-width
+   columns doesn't fit — stack sections full-width instead, matching the same
+   breakpoint used for the Calendar week view. */
+@media (max-width: 900px) {
+  .todo-sections {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .todo-section {
+    flex: none;
+    width: 100%;
+    max-height: none;
+  }
+}

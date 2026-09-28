@@ -10,6 +10,7 @@ import ShoppingView from './components/ShoppingView'
 import PhotosView from './components/PhotosView'
 import PhotosScreensaver from './components/PhotosScreensaver'
 import SetupView from './components/SetupView'
+import TodoView from './components/TodoView'
 import { PeopleProvider } from './context/PeopleContext'
 import { useIdleTimer } from './hooks/useIdleTimer'
 import type { TabId } from './types'
@@ -18,6 +19,7 @@ const IDLE_TIMEOUT_MS = 90_000
 const TABS: { id: TabId; render: () => React.ReactNode }[] = [
   { id: 'calendar', render: () => <CalendarView /> },
   { id: 'chores', render: () => <ChoresView /> },
+  { id: 'todo', render: () => <TodoView /> },
   { id: 'meals', render: () => <MealsView /> },
   { id: 'shopping', render: () => <ShoppingView /> },
   { id: 'photos', render: () => <PhotosView /> },

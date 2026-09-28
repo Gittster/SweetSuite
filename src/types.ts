@@ -46,4 +46,27 @@ export interface Task {
   icon?: ChoreIconKey
 }
 
-export type TabId = 'calendar' | 'chores' | 'meals' | 'shopping' | 'photos' | 'setup'
+export type TabId = 'calendar' | 'chores' | 'meals' | 'shopping' | 'todo' | 'photos' | 'setup'
+
+export interface TodoSubtask {
+  id: string
+  title: string
+  done: boolean
+}
+
+export interface TodoItem {
+  id: string
+  sectionId: string
+  title: string
+  note?: string
+  dueDate?: string // ISO date
+  done: boolean
+  order: number
+  subtasks: TodoSubtask[]
+}
+
+export interface TodoSection {
+  id: string
+  name: string
+  order: number
+}

@@ -129,3 +129,87 @@ export function updateFamilyMember(id: string, data: { name?: string; color?: st
 export function deleteFamilyMember(id: string): Promise<{ deleted: string }> {
   return request(`/family-members?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
+
+export interface TodoSubtaskDto {
+  id: string
+  title: string
+  done: boolean
+}
+
+export interface TodoItemDto {
+  id: string
+  sectionId: string
+  title: string
+  note?: string
+  dueDate?: string
+  done: boolean
+  order: number
+  subtasks: TodoSubtaskDto[]
+}
+
+export interface TodoSectionDto {
+  id: string
+  name: string
+  order: number
+}
+
+export function getTodos(): Promise<{ sections: TodoSectionDto[]; items: TodoItemDto[] }> {
+  return request('/todos')
+}
+
+export function addTodoSection(name: string): Promise<{ section: TodoSectionDto }> {
+  return request('/todos?type=section', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  })
+}
+
+export function updateTodoSection(id: string, data: { name?: string; order?: number }): Promise<{ section: TodoSectionDto }> {
+  return request(`/todos?type=section&id=${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+}
+
+export function deleteTodoSection(id: string): Promise<{ deleted: string }> {
+  return request(`/todos?type=section&id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
+export interface NewTodoItem {
+  sectionId: string
+  title: string
+  note?: string
+  dueDate?: string
+}
+
+export function addTodoItem(data: NewTodoItem): Promise<{ item: TodoItemDto }> {
+  return request('/todos?type=item', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+}
+
+export interface TodoItemUpdate {
+  title?: string
+  note?: string
+  dueDate?: string
+  done?: boolean
+  order?: number
+  sectionId?: string
+  subtasks?: TodoSubtaskDto[]
+}
+
+export function updateTodoItem(id: string, data: TodoItemUpdate): Promise<{ item: TodoItemDto }> {
+  return request(`/todos?type=item&id=${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+}
+
+export function deleteTodoItem(id: string): Promise<{ deleted: string }> {
+  return request(`/todos?type=item&id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+}

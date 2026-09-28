@@ -84,7 +84,9 @@ function EventChip({
       style={{ borderLeftColor: colorFor(event, personById) }}
       onClick={openable ? () => onOpenRecipe!(event.recipeId!) : undefined}
     >
-      <div className="event-chip-time">{event.allDay ? 'All day' : formatTimeRange(event.start, event.end)}</div>
+      {event.source !== 'meal' && (
+        <div className="event-chip-time">{event.allDay ? 'All day' : formatTimeRange(event.start, event.end)}</div>
+      )}
       <div className="event-chip-body">
         <div className="event-chip-title">{event.title}</div>
         {event.location && <div className="event-chip-location">{event.location}</div>}

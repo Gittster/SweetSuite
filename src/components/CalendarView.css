@@ -219,7 +219,8 @@
   font-size: 13px;
   font-weight: 700;
   color: var(--text-muted);
-  min-width: 68px;
+  min-width: 96px;
+  white-space: nowrap;
 }
 
 .event-chip-body {

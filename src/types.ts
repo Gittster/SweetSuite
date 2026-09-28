@@ -13,6 +13,7 @@ export interface CalendarEvent {
   location?: string
   source?: 'google' | 'app' | 'meal'
   recipeId?: string // set on 'meal' events that link back to a recipe
+  allDay?: boolean // no real time to show (Google all-day events, meal placeholders)
 }
 
 export type Recurrence = 'none' | 'daily' | 'weekly' | 'monthly'

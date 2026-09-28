@@ -41,6 +41,24 @@ function colorFor(event: CalendarEvent): string {
   return person?.color ?? '#999'
 }
 
+// "4:00 – 4:30 PM", or "11:30 AM – 12:30 PM" when the range crosses noon/midnight.
+function formatTimeRange(startISO: string, endISO: string): string {
+  const start = new Date(startISO)
+  const end = new Date(endISO)
+  const sameMeridiem = format(start, 'a') === format(end, 'a')
+  const startLabel = sameMeridiem ? format(start, 'h:mm') : format(start, 'h:mm a')
+  return `${startLabel} – ${format(end, 'h:mm a')}`
+}
+
+// Same idea but squeezed for month-grid tiles: "4:00–4:30p" / "11:30a–12:30p".
+function formatTimeRangeCompact(startISO: string, endISO: string): string {
+  const start = new Date(startISO)
+  const end = new Date(endISO)
+  const sameMeridiem = format(start, 'a') === format(end, 'a')
+  const startLabel = sameMeridiem ? format(start, 'h:mm') : `${format(start, 'h:mm')}${format(start, 'a').charAt(0).toLowerCase()}`
+  return `${startLabel}–${format(end, 'h:mm')}${format(end, 'a').charAt(0).toLowerCase()}`
+}
+
 function eventsOnDay(events: CalendarEvent[], day: Date): CalendarEvent[] {
   return events
     .filter((e) => isSameDay(new Date(e.start), day))
@@ -64,7 +82,7 @@ function EventChip({
       style={{ borderLeftColor: colorFor(event) }}
       onClick={openable ? () => onOpenRecipe!(event.recipeId!) : undefined}
     >
-      <div className="event-chip-time">{format(new Date(event.start), 'h:mm a')}</div>
+      <div className="event-chip-time">{event.allDay ? 'All day' : formatTimeRange(event.start, event.end)}</div>
       <div className="event-chip-body">
         <div className="event-chip-title">{event.title}</div>
         {event.location && <div className="event-chip-location">{event.location}</div>}
@@ -167,7 +185,7 @@ function MonthGrid({
                   className="month-grid-tile"
                   style={{ background: colorFor(e) }}
                 >
-                  {e.title}
+                  {e.allDay ? e.title : `${formatTimeRangeCompact(e.start, e.end)} ${e.title}`}
                 </span>
               ))}
               {overflow > 0 && <span className="month-grid-more">+{overflow} more</span>}
@@ -280,7 +298,15 @@ export default function CalendarView() {
       getMealPlan(format(start, 'yyyy-MM-dd'), format(end, 'yyyy-MM-dd')),
     ]).then(([calResult, appResult, mealResult]) => {
       if (calResult.status === 'fulfilled') {
-        setSyncedEvents(calResult.value.events.map((e) => ({ ...e, location: e.location ?? undefined, personId: undefined })))
+        setSyncedEvents(
+          calResult.value.events.map((e) => ({
+            ...e,
+            location: e.location ?? undefined,
+            personId: undefined,
+            // Google gives all-day events a bare "YYYY-MM-DD" (no "T"), timed events a full dateTime.
+            allDay: !e.start.includes('T'),
+          }))
+        )
         setUsingLiveData(true)
       } else {
         console.error('Failed to fetch Google Calendar events, showing demo data:', calResult.reason)
@@ -304,6 +330,9 @@ export default function CalendarView() {
               end: `${m.date}T12:30:00`,
               source: 'meal' as const,
               recipeId: m.recipeId ?? undefined,
+              // The noon timestamp only exists to place the tile in the day — ErinsList's
+              // planning entries don't carry an actual time, so don't show one.
+              allDay: true,
             }))
         )
       } else {

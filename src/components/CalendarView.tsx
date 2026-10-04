@@ -59,10 +59,22 @@ function formatTimeRangeCompact(startISO: string, endISO: string): string {
   return `${startLabel}–${format(end, 'h:mm')}${format(end, 'a').charAt(0).toLowerCase()}`
 }
 
+// A bare "YYYY-MM-DD" (Google all-day events) is parsed as UTC midnight by the
+// JS Date constructor, while a full datetime string is parsed as local time —
+// that mismatch shifts all-day events back a day in any negative-UTC-offset
+// timezone. Parse date-only strings as a local calendar date instead.
+function parseEventDate(iso: string): Date {
+  if (!iso.includes('T')) {
+    const [year, month, day] = iso.split('-').map(Number)
+    return new Date(year, month - 1, day)
+  }
+  return new Date(iso)
+}
+
 function eventsOnDay(events: CalendarEvent[], day: Date): CalendarEvent[] {
   return events
-    .filter((e) => isSameDay(new Date(e.start), day))
-    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+    .filter((e) => isSameDay(parseEventDate(e.start), day))
+    .sort((a, b) => parseEventDate(a.start).getTime() - parseEventDate(b.start).getTime())
 }
 
 function EventChip({
@@ -258,7 +270,7 @@ function ScheduleView({
     const today = startOfDay(new Date())
     const byDay = new Map<string, CalendarEvent[]>()
     for (const e of events) {
-      const day = startOfDay(new Date(e.start))
+      const day = startOfDay(parseEventDate(e.start))
       if (day < today) continue
       const key = day.toISOString()
       if (!byDay.has(key)) byDay.set(key, [])
@@ -268,7 +280,7 @@ function ScheduleView({
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, evts]) => ({
         day: new Date(key),
-        events: evts.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
+        events: evts.sort((a, b) => parseEventDate(a.start).getTime() - parseEventDate(b.start).getTime()),
       }))
   }, [events])
 
